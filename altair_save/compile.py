@@ -2,6 +2,7 @@
 Utilities that use selenium + chrome headless to save figures
 """
 
+import atexit
 import contextlib
 import os
 import tempfile
@@ -89,6 +90,43 @@ if (format === 'vega') {
 """
 
 
+def _get_driver(webdriver, driver_timeout):
+    """Get a webdriver by name."""
+    webdriver = _get_driver.drivers.get(webdriver, webdriver)
+    if isinstance(webdriver, selenium.webdriver.Remote):
+        return webdriver
+
+    if webdriver == "chrome":
+        webdriver_class = selenium.webdriver.Chrome
+        webdriver_options_class = selenium.webdriver.chrome.options.Options
+    elif webdriver == "firefox":
+        webdriver_class = selenium.webdriver.Firefox
+        webdriver_options_class = selenium.webdriver.firefox.options.Options
+    else:
+        raise ValueError(
+            f"Unrecognized webdriver: '{webdriver}'. Expected 'chrome' or 'firefox'"
+        )
+
+    webdriver_options = webdriver_options_class()
+    webdriver_options.add_argument("--headless")
+
+    if issubclass(webdriver_class, selenium.webdriver.Chrome):
+        # for linux/osx root user, need to add --no-sandbox option.
+        # since geteuid doesn't exist on windows, we don't check it
+        if hasattr(os, "geteuid") and (os.geteuid() == 0):
+            webdriver_options.add_argument("--no-sandbox")
+
+    driver_obj = webdriver_class(options=webdriver_options)
+    atexit.register(driver_obj.quit)
+    driver_obj.set_page_load_timeout(driver_timeout)
+    _get_driver.drivers[webdriver] = driver_obj
+
+    return driver_obj
+
+
+_get_driver.drivers = {}
+
+
 def compile_spec(
     spec,
     fmt,
@@ -106,17 +144,7 @@ def compile_spec(
     if mode not in ["vega", "vega-lite"]:
         raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
-    if mode == "vega-lite" and vegalite_version is None:
-        raise ValueError("must specify vega-lite version")
-
-    if webdriver == "chrome":
-        webdriver_class = selenium.webdriver.Chrome
-        webdriver_options_class = selenium.webdriver.chrome.options.Options
-    elif webdriver == "firefox":
-        webdriver_class = selenium.webdriver.Firefox
-        webdriver_options_class = selenium.webdriver.firefox.options.Options
-    else:
-        raise ValueError("webdriver must be 'chrome' or 'firefox'")
+    driver = _get_driver(webdriver, driver_timeout)
 
     html = HTML_TEMPLATE.format(
         vega_version=vega_version,
@@ -124,31 +152,13 @@ def compile_spec(
         vegaembed_version=vegaembed_version,
     )
 
-    webdriver_options = webdriver_options_class()
-    webdriver_options.add_argument("--headless")
-
-    if issubclass(webdriver_class, selenium.webdriver.Chrome):
-        # for linux/osx root user, need to add --no-sandbox option.
-        # since geteuid doesn't exist on windows, we don't check it
-        if hasattr(os, "geteuid") and (os.geteuid() == 0):
-            webdriver_options.add_argument("--no-sandbox")
-
-    driver = webdriver_class(options=webdriver_options)
-
-    try:
-        driver.set_page_load_timeout(driver_timeout)
-
-        with temporary_filename(suffix=".html") as htmlfile:
-            with open(htmlfile, "w") as f:
-                f.write(html)
-            driver.get("file://" + htmlfile)
-            online = driver.execute_script("return navigator.onLine")
-            if not online:
-                raise ValueError(
-                    "Internet connection required for saving " "chart as {}".format(fmt)
-                )
-            return driver.execute_async_script(
-                EXTRACT_CODE, spec, mode, scale_factor, fmt
+    with temporary_filename(suffix=".html") as htmlfile:
+        with open(htmlfile, "w") as f:
+            f.write(html)
+        driver.get("file://" + htmlfile)
+        online = driver.execute_script("return navigator.onLine")
+        if not online:
+            raise ValueError(
+                "Internet connection required for saving " "chart as {}".format(fmt)
             )
-    finally:
-        driver.close()
+        return driver.execute_async_script(EXTRACT_CODE, spec, mode, scale_factor, fmt)
