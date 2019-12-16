@@ -32,4 +32,8 @@ def test_compile(name, data, mode, fmt):
     if mode == "vega" and fmt == "vega":
         return
     out = compile_spec(data[mode], fmt=fmt, mode=mode)
-    assert data[fmt] == out
+
+    if fmt == "png":
+        assert out.startswith("data:image/png;base64,")
+    else:
+        assert data[fmt] == out
