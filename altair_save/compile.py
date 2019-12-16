@@ -98,14 +98,15 @@ class _DriverRegistry:
 
     This prevents the need to start and stop drivers repeatedly.
     """
-    drivers : Dict[str, WebDriver]
+
+    drivers: Dict[str, WebDriver]
 
     def __init__(self):
         self.drivers = {}
 
     def get(self, webdriver: Union[str, WebDriver], driver_timeout: float) -> WebDriver:
         """Get a webdriver by name.
-        
+
         Parameters
         ----------
         webdriver : string or WebDriver

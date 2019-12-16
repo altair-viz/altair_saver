@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from altair_save.core import Saver
+from altair_save.core import Saver  # noqa: E402
 
 test_cases = os.path.join(
     os.path.dirname(__file__), "..", "altair_save", "tests", "test_cases"
