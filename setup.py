@@ -1,7 +1,6 @@
 import io
 import os
 import re
-import shutil
 
 try:
     from setuptools import setup
