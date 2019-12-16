@@ -46,6 +46,8 @@ class Saver:
         elif fmt == "svg":
             _write_file_or_filename(fp, mimebundle["image/svg+xml"], mode="w")
         elif fmt == "vega":
-            _write_file_or_filename(fp, json.dumps(mimebundle.popitem()[1], indent=2), mode="w")
+            _write_file_or_filename(
+                fp, json.dumps(mimebundle.popitem()[1], indent=2), mode="w"
+            )
         else:
             raise ValueError(f"Unrecognized format: {fmt}")

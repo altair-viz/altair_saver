@@ -46,68 +46,47 @@ HTML_TEMPLATE = """
 </html>
 """
 
-EXTRACT_CODE = {
-    "png": """
-        var spec = arguments[0];
-        var mode = arguments[1];
-        var scaleFactor = arguments[2];
-        var done = arguments[3];
+EXTRACT_CODE = """
+var spec = arguments[0];
+var mode = arguments[1];
+var scaleFactor = arguments[2];
+var format = arguments[3];
+var done = arguments[4];
 
-        if(mode === 'vega-lite'){
-          // compile vega-lite to vega
-          vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
-          const compiled = vegaLite.compile(spec);
-          spec = compiled.spec;
-        }
-
-        new vega.View(vega.parse(spec), {
-              loader: vega.loader(),
-              logLevel: vega.Warn,
-              renderer: 'none',
-            })
-            .initialize()
-            .toCanvas(scaleFactor)
-            .then(function(canvas){return canvas.toDataURL('image/png');})
-            .then(done)
-            .catch(function(err) { console.error(err); });
-        """,
-    "svg": """
-        var spec = arguments[0];
-        var mode = arguments[1];
-        var scaleFactor = arguments[2];
-        var done = arguments[3];
-
-        if(mode === 'vega-lite'){
-          // compile vega-lite to vega
-          vl = (typeof vl === "undefined") ? vegaLite : vl;
-          const compiled = vl.compile(spec);
-          spec = compiled.spec;
-        }
-
-        new vega.View(vega.parse(spec), {
-              loader: vega.loader(),
-              logLevel: vega.Warn,
-              renderer: 'none',
-            })
-            .initialize()
-            .toSVG(scaleFactor)
-            .then(done)
-            .catch(function(err) { console.error(err); });
-        """,
-    "vega": """
-        var spec = arguments[0];
-        var mode = arguments[1];
-        var done = arguments[3];
-
-        if(mode === 'vega-lite'){
-          // compile vega-lite to vega
-          vl = (typeof vl === "undefined") ? vegaLite : vl;
-          const compiled = vl.compile(spec);
-          spec = compiled.spec;
-        }
-        done(spec);
-        """,
+if (mode === 'vega-lite') {
+    // compile vega-lite to vega
+    vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
+    const compiled = vegaLite.compile(spec);
+    spec = compiled.spec;
 }
+
+if (format === 'vega') {
+    done(spec)
+} else if (format === 'png') {
+    new vega.View(vega.parse(spec), {
+            loader: vega.loader(),
+            logLevel: vega.Warn,
+            renderer: 'none',
+        })
+        .initialize()
+        .toCanvas(scaleFactor)
+        .then(function(canvas){return canvas.toDataURL('image/png');})
+        .then(done)
+        .catch(function(err) { console.error(err); });
+} else if (format === 'svg') {
+    new vega.View(vega.parse(spec), {
+            loader: vega.loader(),
+            logLevel: vega.Warn,
+            renderer: 'none',
+        })
+        .initialize()
+        .toSVG(scaleFactor)
+        .then(done)
+        .catch(function(err) { console.error(err); });
+} else {
+    console.error("Unrecognized format: " + fmt)
+}
+"""
 
 
 def compile_spec(
@@ -169,7 +148,7 @@ def compile_spec(
                     "Internet connection required for saving " "chart as {}".format(fmt)
                 )
             return driver.execute_async_script(
-                EXTRACT_CODE[fmt], spec, mode, scale_factor
+                EXTRACT_CODE, spec, mode, scale_factor, fmt
             )
     finally:
         driver.close()
