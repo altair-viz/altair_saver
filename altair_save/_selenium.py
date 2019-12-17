@@ -1,17 +1,17 @@
-"""
-Utilities that use selenium + chrome headless to save figures
-"""
-
 import atexit
+import base64
 import contextlib
 import os
 import tempfile
 from typing import Any, Dict, Union
 
+import altair as alt
+from altair_save import versions
+from altair_save._saver import Saver
+
+
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
-
-from altair_save import versions
 
 
 HTML_TEMPLATE = """
@@ -151,7 +151,7 @@ class _DriverRegistry:
 _registry = _DriverRegistry()
 
 
-def compile_spec(
+def _compile_spec(
     spec: Dict[str, Any],
     fmt: str,
     mode: str,
@@ -168,35 +168,86 @@ def compile_spec(
     ----------
 
     """
-    if fmt not in ["png", "svg", "vega", "vega-lite"]:
-        raise NotImplementedError(
-            f"fmt={fmt!r} must be 'svg', 'png', 'vega'  or 'vega-lite'"
-        )
 
-    if mode not in ["vega", "vega-lite"]:
-        raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
-    if mode == "vega" and fmt == "vega-lite":
-        raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
+class SeleniumSaver(Saver):
+    def __init__(
+        self,
+        spec: dict,
+        mode: str = "vega-lite",
+        vega_version: str = versions.VEGA_VERSION,
+        vegalite_version: str = versions.VEGALITE_VERSION,
+        vegaembed_version: str = versions.VEGAEMBED_VERSION,
+        driver_timeout: int = 20,
+        scale_factor: float = 1,
+        webdriver: str = "chrome",
+        **kwargs,
+    ):
+        self._vega_version = vega_version
+        self._vegalite_version = vegalite_version
+        self._vegaembed_version = vegaembed_version
+        self._driver_timeout = driver_timeout
+        self._scale_factor = scale_factor
+        self._webdriver = webdriver
+        super().__init__(spec=spec, mode=mode)
 
-    if fmt == mode:
-        return spec
-
-    driver = _registry.get(webdriver, driver_timeout)
-
-    html = HTML_TEMPLATE.format(
-        vega_version=vega_version,
-        vegalite_version=vegalite_version,
-        vegaembed_version=vegaembed_version,
-    )
-
-    with temporary_filename(suffix=".html") as htmlfile:
-        with open(htmlfile, "w") as f:
-            f.write(html)
-        driver.get("file://" + htmlfile)
-        online = driver.execute_script("return navigator.onLine")
-        if not online:
-            raise ValueError(
-                "Internet connection required for saving " "chart as {}".format(fmt)
+    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes, dict]]:
+        if fmt not in ["png", "svg", "vega", "vega-lite"]:
+            raise NotImplementedError(
+                f"fmt={fmt!r} must be 'svg', 'png', 'vega'  or 'vega-lite'"
             )
-        return driver.execute_async_script(EXTRACT_CODE, spec, mode, scale_factor, fmt)
+
+        if self._mode not in ["vega", "vega-lite"]:
+            raise ValueError("mode must be either 'vega' or 'vega-lite'")
+
+        if self._mode == "vega" and fmt == "vega-lite":
+            raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
+
+        if fmt == self._mode:
+            out = self._spec
+        else:
+            driver = _registry.get(self._webdriver, self._driver_timeout)
+
+            html = HTML_TEMPLATE.format(
+                vega_version=self._vega_version,
+                vegalite_version=self._vegalite_version,
+                vegaembed_version=self._vegaembed_version,
+            )
+
+            with temporary_filename(suffix=".html") as htmlfile:
+                with open(htmlfile, "w") as f:
+                    f.write(html)
+                driver.get("file://" + htmlfile)
+                online = driver.execute_script("return navigator.onLine")
+                if not online:
+                    raise ValueError(
+                        "Internet connection required for saving "
+                        "chart as {}".format(fmt)
+                    )
+                out = driver.execute_async_script(
+                    EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
+                )
+
+        if fmt == "png":
+            assert isinstance(out, str)
+            assert out.startswith("data:image/png;base64,")
+            return {"image/png": base64.b64decode(out.split(",", 1)[1].encode())}
+        elif fmt == "svg":
+            assert isinstance(out, str)
+            return {"image/svg+xml": out}
+        elif fmt == "vega":
+            assert isinstance(out, dict)
+            return {
+                "application/vnd.vega.v{}+json".format(
+                    alt.VEGA_VERSION.split(".")[0]
+                ): out
+            }
+        elif fmt == "vega-lite":
+            assert isinstance(out, dict)
+            return {
+                "application/vnd.vegalite.v{}+json".format(
+                    alt.VEGALITE_VERSION.split(".")[0]
+                ): out
+            }
+        else:
+            raise ValueError(f"Unrecognized format: {fmt}")

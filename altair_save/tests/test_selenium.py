@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from altair_save.core import SeleniumSaver
+from altair_save._selenium import SeleniumSaver
 
 
 def get_test_cases():

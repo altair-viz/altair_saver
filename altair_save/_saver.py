@@ -1,12 +1,7 @@
 import abc
-import base64
 import contextlib
 import json
 from typing import Dict, IO, Iterable, Iterator, Union
-
-import altair as alt
-from altair_save import versions
-from altair_save.compile import compile_spec
 
 
 @contextlib.contextmanager
@@ -67,47 +62,5 @@ class Saver(metaclass=abc.ABCMeta):
         elif fmt == "vega":
             with maybe_open(fp, "w") as f:
                 json.dump(mimebundle.popitem()[1], f, indent=2)
-        else:
-            raise ValueError(f"Unrecognized format: {fmt}")
-
-
-class SeleniumSaver(Saver):
-    def __init__(
-        self,
-        spec: dict,
-        mode: str = "vega-lite",
-        vega_version: str = versions.VEGA_VERSION,
-        vegalite_version: str = versions.VEGALITE_VERSION,
-        vegaembed_version: str = versions.VEGAEMBED_VERSION,
-        **kwargs,
-    ):
-        self._vega_version = vega_version
-        self._vegalite_version = vegalite_version
-        self._vegaembed_version = vegaembed_version
-        super().__init__(spec=spec, mode=mode)
-
-    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes, dict]]:
-        out = compile_spec(self._spec, fmt=fmt, mode=self._mode)
-        if fmt == "png":
-            assert isinstance(out, str)
-            assert out.startswith("data:image/png;base64,")
-            return {"image/png": base64.b64decode(out.split(",", 1)[1].encode())}
-        elif fmt == "svg":
-            assert isinstance(out, str)
-            return {"image/svg+xml": out}
-        elif fmt == "vega":
-            assert isinstance(out, dict)
-            return {
-                "application/vnd.vega.v{}+json".format(
-                    alt.VEGA_VERSION.split(".")[0]
-                ): out
-            }
-        elif fmt == "vega-lite":
-            assert isinstance(out, dict)
-            return {
-                "application/vnd.vegalite.v{}+json".format(
-                    alt.VEGALITE_VERSION.split(".")[0]
-                ): out
-            }
         else:
             raise ValueError(f"Unrecognized format: {fmt}")
