@@ -1,56 +1,100 @@
+import abc
 import base64
+import contextlib
 import json
-from typing import Dict, IO, Union
+from typing import Dict, IO, Iterable, Iterator, Union
 
 import altair as alt
+from altair_save import versions
 from altair_save.compile import compile_spec
 
 
-# TODO: make this only accept binary
-def _write_file_or_filename(fp: Union[IO, str], content: Union[str, bytes], mode="w"):
-    """Write content to fp, whether fp is a string or a file-like object"""
+@contextlib.contextmanager
+def maybe_open(fp: Union[IO, str], mode="w") -> Iterator[IO]:
+    """Write to string or file-like object"""
     if isinstance(fp, str):
         with open(fp, mode) as f:
-            f.write(content)
+            yield f
     else:
-        fp.write(content)
+        yield fp
 
 
-class Saver:
-    def __init__(self, chart, **kwargs):
-        self.chart = chart
-        self._kwargs = kwargs
+class Saver(metaclass=abc.ABCMeta):
+    valid_formats = ["png", "svg", "vega", "vega-lite"]
 
-    def mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes]]:
-        if isinstance(self.chart, dict):
-            spec = self.chart
+    def __init__(self, spec: dict, mode: str = "vega-lite"):
+        # TODO: extract mode from spec $schema if not specified.
+        self._spec = spec
+        self._mode = mode
+
+    @abc.abstractmethod
+    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes]]:
+        pass
+
+    @staticmethod
+    def _extract_format(filename: str) -> str:
+        """Extract the output format from a filename."""
+        if filename.endswith(".vg.json"):
+            return "vega"
+        if filename.endswith(".json"):
+            return "vega-lite"
         else:
-            spec = self.chart.to_dict()
-        out = compile_spec(spec, fmt, mode="vega-lite")
-        print(fmt, type(out))
+            return filename.split(".")[-1]
+
+    def mimebundle(self, fmt: Iterable[str]) -> Dict[str, Union[str, bytes]]:
+        bundle = {}
+        for f in fmt:
+            bundle.update(self._mimebundle(f))
+        return bundle
+
+    def save(self, fp: Union[IO, str], fmt: str = None) -> None:
+        """Save a chart to file"""
+        if fmt is None and isinstance(fp, str):
+            fmt = self._extract_format(fp)
+        if fmt not in self.valid_formats:
+            raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
+        if fmt == "vega-lite":
+            with maybe_open(fp, "w") as f:
+                json.dump(self._spec, f)
+
+        mimebundle = self.mimebundle([fmt])
+        if fmt == "png":
+            with maybe_open(fp, "wb") as f:
+                f.write(mimebundle["image/png"])
+        elif fmt == "svg":
+            with maybe_open(fp, "wb") as f:
+                f.write(mimebundle["image/svg+xml"])
+        elif fmt == "vega":
+            with maybe_open(fp, "w") as f:
+                json.dump(mimebundle.popitem()[1], f, indent=2)
+        else:
+            raise ValueError(f"Unrecognized format: {fmt}")
+
+
+class SeleniumSaver(Saver):
+    def __init__(
+        self,
+        spec: dict,
+        mode: str = "vega-lite",
+        vega_version: str = versions.VEGA_VERSION,
+        vegalite_version: str = versions.VEGALITE_VERSION,
+        vegaembed_version: str = versions.VEGAEMBED_VERSION,
+        **kwargs,
+    ):
+        self._vega_version = vega_version
+        self._vegalite_version = vegalite_version
+        self._vegaembed_version = vegaembed_version
+        super().__init__(spec=spec, mode=mode)
+
+    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes]]:
+        out = compile_spec(self._spec, fmt=fmt, mode=self._mode)
         if fmt == "png":
             return {"image/png": base64.b64decode(out.split(",", 1)[1].encode())}
         elif fmt == "svg":
             return {"image/svg+xml": out.encode()}
         elif fmt == "vega":
             return {"application/vnd.vega.v{}+json".format(alt.VEGA_VERSION[0]): out}
-        else:
-            raise ValueError(f"Unrecognized format: {fmt}")
-
-    def save(self, fp: Union[IO, str], fmt: str = None):
-        if fmt is None:
-            if isinstance(fp, str):
-                fmt = fp.split(".")[-1]
-            else:
-                raise ValueError("must specify file format: ['png', 'svg', 'vega']")
-        mimebundle = self.mimebundle(fmt)
-        if fmt == "png":
-            _write_file_or_filename(fp, mimebundle["image/png"], mode="wb")
-        elif fmt == "svg":
-            _write_file_or_filename(fp, mimebundle["image/svg+xml"], mode="wb")
-        elif fmt == "vega":
-            _write_file_or_filename(
-                fp, json.dumps(mimebundle.popitem()[1], indent=2), mode="w"
-            )
+        elif fmt == "vega-lite":
+            return {"application/vnd.vega.v{}+json".format(alt.VEGA_VERSION[0]): out}
         else:
             raise ValueError(f"Unrecognized format: {fmt}")

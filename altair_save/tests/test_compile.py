@@ -4,7 +4,8 @@ import os
 
 import pytest
 
-from altair_save.core import compile_spec
+from altair_save.compile import compile_spec
+from altair_save.core import SeleniumSaver
 
 
 def get_test_cases():
@@ -37,3 +38,10 @@ def test_compile(name, data, mode, fmt):
         assert out.startswith("data:image/png;base64,")
     else:
         assert data[fmt] == out
+
+
+@pytest.mark.parametrize("name,data", get_test_cases())
+def test_selenium_saver(name, data):
+    saver = SeleniumSaver(data["vega-lite"])
+    out = saver.mimebundle(["svg"])
+    assert out.popitem()[1].decode() == data["svg"]

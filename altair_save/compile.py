@@ -11,9 +11,7 @@ from typing import Any, Dict, Union
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
-VEGA_VERSION = "5.9.0"
-VEGALITE_VERSION = "4.0.0"
-VEGAEMBED_VERSION = "6.2.1"
+from altair_save import versions
 
 
 HTML_TEMPLATE = """
@@ -157,12 +155,12 @@ def compile_spec(
     spec: Dict[str, Any],
     fmt: str,
     mode: str,
-    vega_version: str = VEGA_VERSION,
-    vegaembed_version: str = VEGAEMBED_VERSION,
-    vegalite_version: str = VEGALITE_VERSION,
+    vega_version: str = versions.VEGA_VERSION,
+    vegaembed_version: str = versions.VEGAEMBED_VERSION,
+    vegalite_version: str = versions.VEGALITE_VERSION,
     scale_factor: float = 1,
-    driver_timeout: float = 20,
     webdriver: str = "chrome",
+    driver_timeout: float = 20,
 ) -> str:
     """Use selenium to compile a vega or vega-lite spec.
 
