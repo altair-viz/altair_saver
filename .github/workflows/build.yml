@@ -18,7 +18,7 @@ jobs:
     - name: Set Up Chromedriver
       run: |
         sudo apt-get update
-        sudo apt-get -yqq install chromium-chromedriver
+        sudo apt-get -yqq install chromium-chromedriver==78.0.3904.108-0ubuntu0.18.04.1
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
