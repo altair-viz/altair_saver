@@ -28,7 +28,7 @@ class Saver(metaclass=abc.ABCMeta):
         self._mode = mode
 
     @abc.abstractmethod
-    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes]]:
+    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes, dict]]:
         pass
 
     @staticmethod
@@ -41,7 +41,7 @@ class Saver(metaclass=abc.ABCMeta):
         else:
             return filename.split(".")[-1]
 
-    def mimebundle(self, fmt: Iterable[str]) -> Dict[str, Union[str, bytes]]:
+    def mimebundle(self, fmt: Iterable[str]) -> Dict[str, Union[str, bytes, dict]]:
         bundle = {}
         for f in fmt:
             bundle.update(self._mimebundle(f))
@@ -86,15 +86,28 @@ class SeleniumSaver(Saver):
         self._vegaembed_version = vegaembed_version
         super().__init__(spec=spec, mode=mode)
 
-    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes]]:
+    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes, dict]]:
         out = compile_spec(self._spec, fmt=fmt, mode=self._mode)
         if fmt == "png":
+            assert isinstance(out, str)
+            assert out.startswith("data:image/png;base64,")
             return {"image/png": base64.b64decode(out.split(",", 1)[1].encode())}
         elif fmt == "svg":
-            return {"image/svg+xml": out.encode()}
+            assert isinstance(out, str)
+            return {"image/svg+xml": out}
         elif fmt == "vega":
-            return {"application/vnd.vega.v{}+json".format(alt.VEGA_VERSION[0]): out}
+            assert isinstance(out, dict)
+            return {
+                "application/vnd.vega.v{}+json".format(
+                    alt.VEGA_VERSION.split(".")[0]
+                ): out
+            }
         elif fmt == "vega-lite":
-            return {"application/vnd.vega.v{}+json".format(alt.VEGA_VERSION[0]): out}
+            assert isinstance(out, dict)
+            return {
+                "application/vnd.vegalite.v{}+json".format(
+                    alt.VEGALITE_VERSION.split(".")[0]
+                ): out
+            }
         else:
             raise ValueError(f"Unrecognized format: {fmt}")

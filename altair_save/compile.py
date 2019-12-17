@@ -161,18 +161,26 @@ def compile_spec(
     scale_factor: float = 1,
     webdriver: str = "chrome",
     driver_timeout: float = 20,
-) -> str:
+) -> Union[str, Dict[str, Any]]:
     """Use selenium to compile a vega or vega-lite spec.
 
     Parameters
     ----------
 
     """
-    if fmt not in ["png", "svg", "vega"]:
-        raise NotImplementedError(f"fmt={fmt!r} must be 'svg', 'png' or 'vega'")
+    if fmt not in ["png", "svg", "vega", "vega-lite"]:
+        raise NotImplementedError(
+            f"fmt={fmt!r} must be 'svg', 'png', 'vega'  or 'vega-lite'"
+        )
 
     if mode not in ["vega", "vega-lite"]:
         raise ValueError("mode must be either 'vega' or 'vega-lite'")
+
+    if mode == "vega" and fmt == "vega-lite":
+        raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
+
+    if fmt == mode:
+        return spec
 
     driver = _registry.get(webdriver, driver_timeout)
 
