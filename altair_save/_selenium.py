@@ -3,11 +3,11 @@ import base64
 import contextlib
 import os
 import tempfile
-from typing import Any, Dict, Union
+from typing import Dict, Union
 
 import altair as alt
-from altair_save import versions
-from altair_save._saver import Saver
+from altair_save import _versions
+from altair_save._saver import Saver, Mimebundle
 
 
 import selenium.webdriver
@@ -148,36 +148,18 @@ class _DriverRegistry:
         return driver_obj
 
 
-_registry = _DriverRegistry()
-
-
-def _compile_spec(
-    spec: Dict[str, Any],
-    fmt: str,
-    mode: str,
-    vega_version: str = versions.VEGA_VERSION,
-    vegaembed_version: str = versions.VEGAEMBED_VERSION,
-    vegalite_version: str = versions.VEGALITE_VERSION,
-    scale_factor: float = 1,
-    webdriver: str = "chrome",
-    driver_timeout: float = 20,
-) -> Union[str, Dict[str, Any]]:
-    """Use selenium to compile a vega or vega-lite spec.
-
-    Parameters
-    ----------
-
-    """
-
-
 class SeleniumSaver(Saver):
+    """Save charts using a selenium engine."""
+
+    _registry = _DriverRegistry()
+
     def __init__(
         self,
         spec: dict,
         mode: str = "vega-lite",
-        vega_version: str = versions.VEGA_VERSION,
-        vegalite_version: str = versions.VEGALITE_VERSION,
-        vegaembed_version: str = versions.VEGAEMBED_VERSION,
+        vega_version: str = _versions.VEGA_VERSION,
+        vegalite_version: str = _versions.VEGALITE_VERSION,
+        vegaembed_version: str = _versions.VEGAEMBED_VERSION,
         driver_timeout: int = 20,
         scale_factor: float = 1,
         webdriver: str = "chrome",
@@ -191,12 +173,7 @@ class SeleniumSaver(Saver):
         self._webdriver = webdriver
         super().__init__(spec=spec, mode=mode)
 
-    def _mimebundle(self, fmt: str) -> Dict[str, Union[str, bytes, dict]]:
-        if fmt not in ["png", "svg", "vega", "vega-lite"]:
-            raise NotImplementedError(
-                f"fmt={fmt!r} must be 'svg', 'png', 'vega'  or 'vega-lite'"
-            )
-
+    def _mimebundle(self, fmt: str) -> Mimebundle:
         if self._mode not in ["vega", "vega-lite"]:
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
@@ -206,7 +183,7 @@ class SeleniumSaver(Saver):
         if fmt == self._mode:
             out = self._spec
         else:
-            driver = _registry.get(self._webdriver, self._driver_timeout)
+            driver = self._registry.get(self._webdriver, self._driver_timeout)
 
             html = HTML_TEMPLATE.format(
                 vega_version=self._vega_version,
