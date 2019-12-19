@@ -40,8 +40,7 @@ var format = arguments[3];
 var done = arguments[4];
 
 if (mode === 'vega-lite') {
-    // compile vega-lite to vega
-    // vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
+    vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
     const compiled = vegaLite.compile(spec);
     spec = compiled.spec;
 }
@@ -213,7 +212,8 @@ class SeleniumSaver(Saver):
 
         if self._use_local_server:
             try:
-                self._serve(html, extension="html")
+                url = self._serve(html, extension="html")
+                driver.get(url)
                 online = driver.execute_script("return navigator.onLine")
                 if not online:
                     raise ValueError(
