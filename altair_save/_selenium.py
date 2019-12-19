@@ -14,6 +14,7 @@ from altair_data_server._provide import _Provider, _Resource
 
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.common.exceptions import NoSuchElementException
 
 CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
@@ -210,35 +211,33 @@ class SeleniumSaver(Saver):
             ),
         )
 
+        def _run_script(url):
+            driver.get("about:blank")
+            driver.get(url)
+            try:
+                driver.find_element_by_id("vis")
+            except NoSuchElementException:
+                raise RuntimeError(f"Could not load {url}")
+            online = driver.execute_script("return navigator.onLine")
+            if not online:
+                raise RuntimeError(
+                    f"Internet connection required for saving chart as {fmt}"
+                )
+            return driver.execute_async_script(
+                EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
+            )
+
         if self._use_local_server:
             try:
                 url = self._serve(html, extension="html")
-                driver.get(url)
-                online = driver.execute_script("return navigator.onLine")
-                if not online:
-                    raise ValueError(
-                        "Internet connection required for saving "
-                        "chart as {}".format(fmt)
-                    )
-                return driver.execute_async_script(
-                    EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
-                )
+                return _run_script(url)
             finally:
                 self._stop_serving()
         else:
             with temporary_filename(suffix=".html") as htmlfile:
                 with open(htmlfile, "w") as f:
                     f.write(html)
-                driver.get("file://" + htmlfile)
-                online = driver.execute_script("return navigator.onLine")
-                if not online:
-                    raise ValueError(
-                        "Internet connection required for saving "
-                        "chart as {}".format(fmt)
-                    )
-                return driver.execute_async_script(
-                    EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
-                )
+                return _run_script(f"file://{htmlfile}")
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         if self._mode not in ["vega", "vega-lite"]:

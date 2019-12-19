@@ -28,7 +28,7 @@ def get_test_cases():
 @pytest.mark.parametrize("name,data", get_test_cases())
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
 @pytest.mark.parametrize("fmt", ["png", "svg", "vega", "vega-lite"])
-@pytest.mark.parametrize("use_local_server", [False, True])
+@pytest.mark.parametrize("use_local_server", [True, False])
 def test_selenium_mimebundle(name, data, mode, fmt, use_local_server):
     if mode == "vega" and fmt in ["vega", "vega-lite"]:
         return
