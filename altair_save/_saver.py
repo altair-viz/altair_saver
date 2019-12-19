@@ -97,7 +97,7 @@ class Saver(metaclass=abc.ABCMeta):
             with maybe_open(fp, "wb") as f:
                 f.write(mimebundle["image/png"])
         elif fmt == "svg":
-            with maybe_open(fp, "wb") as f:
+            with maybe_open(fp, "w") as f:
                 f.write(mimebundle["image/svg+xml"])
         elif fmt == "vega":
             with maybe_open(fp, "w") as f:

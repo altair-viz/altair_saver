@@ -28,10 +28,11 @@ def get_test_cases():
 @pytest.mark.parametrize("name,data", get_test_cases())
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
 @pytest.mark.parametrize("fmt", ["png", "svg", "vega", "vega-lite"])
-def test_selenium_mimebundle(name, data, mode, fmt):
+@pytest.mark.parametrize("use_local_server", [False, True])
+def test_selenium_mimebundle(name, data, mode, fmt, use_local_server):
     if mode == "vega" and fmt in ["vega", "vega-lite"]:
         return
-    saver = SeleniumSaver(data[mode], mode=mode)
+    saver = SeleniumSaver(data[mode], mode=mode, use_local_server=use_local_server)
     out = saver.mimebundle([fmt])
     out = out.popitem()[1]
     if fmt == "png":

@@ -3,25 +3,28 @@ import base64
 import contextlib
 import os
 import tempfile
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import altair as alt
 from altair_save import _versions
-from altair_save._saver import Saver, Mimebundle
+from altair_save._saver import Mimebundle, MimeType, Saver
+
+from altair_data_server._provide import _Provider, _Resource
 
 
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
+CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
   <title>Embedding Vega-Lite</title>
-  <script src="https://cdn.jsdelivr.net/npm/vega@{vega_version}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-lite@{vegalite_version}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-embed@{vegaembed_version}"></script>
+  <script src="{vega_url}"></script>
+  <script src="{vegalite_url}"></script>
+  <script src="{vegaembed_url}"></script>
 </head>
 <body>
   <div id="vis"></div>
@@ -38,7 +41,7 @@ var done = arguments[4];
 
 if (mode === 'vega-lite') {
     // compile vega-lite to vega
-    vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
+    // vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
     const compiled = vegaLite.compile(spec);
     spec = compiled.spec;
 }
@@ -151,7 +154,9 @@ class _DriverRegistry:
 class SeleniumSaver(Saver):
     """Save charts using a selenium engine."""
 
-    _registry = _DriverRegistry()
+    _registry: _DriverRegistry = _DriverRegistry()
+    _provider: Optional[_Provider] = None
+    _resources: Dict[str, _Resource] = {}
 
     def __init__(
         self,
@@ -163,6 +168,7 @@ class SeleniumSaver(Saver):
         driver_timeout: int = 20,
         scale_factor: float = 1,
         webdriver: str = "chrome",
+        use_local_server: bool = False,
         **kwargs,
     ):
         self._vega_version = vega_version
@@ -171,26 +177,55 @@ class SeleniumSaver(Saver):
         self._driver_timeout = driver_timeout
         self._scale_factor = scale_factor
         self._webdriver = webdriver
+        self._use_local_server = use_local_server
         super().__init__(spec=spec, mode=mode)
 
-    def _mimebundle(self, fmt: str) -> Mimebundle:
-        if self._mode not in ["vega", "vega-lite"]:
-            raise ValueError("mode must be either 'vega' or 'vega-lite'")
+    @classmethod
+    def _serve(cls, content: str, extension: str) -> str:
+        if cls._provider is None:
+            cls._provider = _Provider()
+        resource = cls._provider.create(
+            content=content,
+            extension=extension,
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+        cls._resources[resource.url] = resource
+        return resource.url
 
-        if self._mode == "vega" and fmt == "vega-lite":
-            raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
+    @classmethod
+    def _stop_serving(cls):
+        if cls._provider is not None:
+            cls._provider.stop()
+            cls._provider = None
 
-        if fmt == self._mode:
-            out = self._spec
+    def _extract(self, fmt: str) -> MimeType:
+        driver = self._registry.get(self._webdriver, self._driver_timeout)
+
+        html = HTML_TEMPLATE.format(
+            vega_url=CDN_URL.format(package="vega", version=self._vega_version),
+            vegalite_url=CDN_URL.format(
+                package="vega-lite", version=self._vegalite_version
+            ),
+            vegaembed_url=CDN_URL.format(
+                package="vega-embed", version=self._vegaembed_version
+            ),
+        )
+
+        if self._use_local_server:
+            try:
+                self._serve(html, extension="html")
+                online = driver.execute_script("return navigator.onLine")
+                if not online:
+                    raise ValueError(
+                        "Internet connection required for saving "
+                        "chart as {}".format(fmt)
+                    )
+                return driver.execute_async_script(
+                    EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
+                )
+            finally:
+                self._stop_serving()
         else:
-            driver = self._registry.get(self._webdriver, self._driver_timeout)
-
-            html = HTML_TEMPLATE.format(
-                vega_version=self._vega_version,
-                vegalite_version=self._vegalite_version,
-                vegaembed_version=self._vegaembed_version,
-            )
-
             with temporary_filename(suffix=".html") as htmlfile:
                 with open(htmlfile, "w") as f:
                     f.write(html)
@@ -201,9 +236,23 @@ class SeleniumSaver(Saver):
                         "Internet connection required for saving "
                         "chart as {}".format(fmt)
                     )
-                out = driver.execute_async_script(
+                return driver.execute_async_script(
                     EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
                 )
+
+    def _mimebundle(self, fmt: str) -> Mimebundle:
+        if self._mode not in ["vega", "vega-lite"]:
+            raise ValueError("mode must be either 'vega' or 'vega-lite'")
+
+        if self._mode == "vega" and fmt == "vega-lite":
+            raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
+
+        out: MimeType = {}
+
+        if fmt == self._mode:
+            out = self._spec
+        else:
+            out = self._extract(fmt)
 
         if fmt == "png":
             assert isinstance(out, str)
