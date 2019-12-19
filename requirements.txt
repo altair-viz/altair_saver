@@ -1,2 +1,3 @@
 altair
+altair_data_server
 selenium
