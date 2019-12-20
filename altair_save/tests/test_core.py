@@ -18,21 +18,28 @@ def spec(chart):
     return chart.to_dict()
 
 
+@pytest.mark.parametrize("method", ["node", "selenium"])
 @pytest.mark.parametrize("fmt", ["png", "svg", "vega", "vega-lite"])
-def test_save_chart(chart, fmt):
+def test_save_chart(chart, fmt, method):
     if fmt == "png":
         fp = io.BytesIO()
     else:
         fp = io.StringIO()
 
-    save(chart, fp, fmt=fmt)
+    save(chart, fp, fmt=fmt, method=method)
 
 
+@pytest.mark.parametrize("method", ["node", "selenium"])
 @pytest.mark.parametrize("fmt", ["png", "svg", "vega", "vega-lite"])
-def test_save_spec(spec, fmt):
+def test_save_spec(spec, fmt, method):
     if fmt == "png":
         fp = io.BytesIO()
     else:
         fp = io.StringIO()
 
-    save(spec, fp, fmt=fmt)
+    save(spec, fp, fmt=fmt, method=method)
+
+
+def test_save_pdf(spec):
+    fp = io.BytesIO()
+    save(spec, fp, fmt="pdf", method="node")
