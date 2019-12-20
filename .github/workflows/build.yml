@@ -15,11 +15,18 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Set Up Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
     - name: Set Up Chromedriver
       run: |
         sudo apt-get update
         sudo apt-get --only-upgrade install google-chrome-stable
         sudo apt-get -yqq install chromium-chromedriver
+    - name: Set Up vega CLI
+      run: |
+        npm install -g vega vega-lite vega-cli
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip

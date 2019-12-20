@@ -11,7 +11,6 @@ from altair_save._saver import Mimebundle, MimeType, Saver
 
 from altair_data_server._provide import _Provider, _Resource
 
-
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException

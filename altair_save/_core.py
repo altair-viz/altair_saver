@@ -3,10 +3,11 @@ from typing import Any, Dict, IO, Union
 import altair as alt
 
 from altair_save._selenium import SeleniumSaver
+from altair_save._node import NodeSaver
 
 SpecType = Dict[str, Any]
 
-METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver}
+METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 
 
 def save(
