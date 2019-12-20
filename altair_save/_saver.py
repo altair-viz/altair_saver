@@ -9,7 +9,7 @@ Mimebundle = Dict[str, MimeType]
 
 
 @contextlib.contextmanager
-def maybe_open(fp: Union[IO, str], mode="w") -> Iterator[IO]:
+def _maybe_open(fp: Union[IO, str], mode="w") -> Iterator[IO]:
     """Write to string or file-like object"""
     if isinstance(fp, str):
         with open(fp, mode) as f:
@@ -89,18 +89,19 @@ class Saver(metaclass=abc.ABCMeta):
         if fmt not in self.valid_formats:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
         if fmt == "vega-lite":
-            with maybe_open(fp, "w") as f:
+            with _maybe_open(fp, "w") as f:
                 json.dump(self._spec, f)
+            return
 
         mimebundle = self.mimebundle([fmt])
         if fmt == "png":
-            with maybe_open(fp, "wb") as f:
+            with _maybe_open(fp, "wb") as f:
                 f.write(mimebundle["image/png"])
         elif fmt == "svg":
-            with maybe_open(fp, "w") as f:
+            with _maybe_open(fp, "w") as f:
                 f.write(mimebundle["image/svg+xml"])
         elif fmt == "vega":
-            with maybe_open(fp, "w") as f:
+            with _maybe_open(fp, "w") as f:
                 json.dump(mimebundle.popitem()[1], f, indent=2)
         else:
             raise ValueError(f"Unrecognized format: {fmt}")
