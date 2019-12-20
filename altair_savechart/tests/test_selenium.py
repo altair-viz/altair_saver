@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from altair_save._node import NodeSaver
+from altair_savechart._selenium import SeleniumSaver
 
 
 def get_test_cases():
@@ -27,17 +27,18 @@ def get_test_cases():
 
 @pytest.mark.parametrize("name,data", get_test_cases())
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
-@pytest.mark.parametrize("fmt", NodeSaver.valid_formats)
-def test_selenium_mimebundle(name, data, mode, fmt):
+@pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
+@pytest.mark.parametrize("use_local_server", [True, False])
+def test_selenium_mimebundle(name, data, mode, fmt, use_local_server):
     if mode == "vega" and fmt in ["vega", "vega-lite"]:
         return
-    saver = NodeSaver(data[mode], mode=mode)
+    saver = SeleniumSaver(data[mode], mode=mode, use_local_server=use_local_server)
     out = saver.mimebundle([fmt])
     out = out.popitem()[1]
-    if fmt in ["png", "pdf"]:
-        # TODO: can we validate binary output robustly?
+    if fmt == "png":
+        # TODO: can we validate png output robustly?
         assert isinstance(out, bytes)
     elif fmt == "svg":
-        assert out.startswith("<svg")
+        assert out == data[fmt]
     else:
         assert out == data[fmt]

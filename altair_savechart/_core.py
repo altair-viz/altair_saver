@@ -2,8 +2,8 @@ from typing import Any, Dict, IO, Union
 
 import altair as alt
 
-from altair_save._selenium import SeleniumSaver
-from altair_save._node import NodeSaver
+from altair_savechart._selenium import SeleniumSaver
+from altair_savechart._node import NodeSaver
 
 SpecType = Dict[str, Any]
 

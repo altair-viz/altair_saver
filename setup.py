@@ -54,8 +54,8 @@ def find_packages(top=HERE):
 
 
 setup(
-    name="altair_save",
-    version=version("altair_save/__init__.py"),
+    name="altair_savechart",
+    version=version("altair_savechart/__init__.py"),
     description="A python engine for evaluating Altair transforms.",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",

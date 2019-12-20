@@ -4,4 +4,4 @@ include setup.cfg
 include mypy.ini
 include LICENSE
 include requirements.txt
-recursive-include altair_save *.py *.json *.png *.svg
+recursive-include altair_savechart *.py *.json *.png *.svg

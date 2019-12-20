@@ -6,8 +6,8 @@ import tempfile
 from typing import Dict, Optional, Union
 
 import altair as alt
-from altair_save import _versions
-from altair_save._saver import Mimebundle, MimeType, Saver
+from altair_savechart import _versions
+from altair_savechart._saver import Mimebundle, MimeType, Saver
 
 from altair_data_server._provide import _Provider, _Resource
 

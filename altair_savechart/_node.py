@@ -4,7 +4,7 @@ import subprocess
 from typing import TYPE_CHECKING, TypeVar, Callable
 
 import altair as alt
-from altair_save._saver import Mimebundle, Saver
+from altair_savechart._saver import Mimebundle, Saver
 
 if TYPE_CHECKING:
     F = TypeVar("F")

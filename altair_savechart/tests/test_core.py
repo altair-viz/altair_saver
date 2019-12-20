@@ -4,7 +4,7 @@ import altair as alt
 import pandas as pd
 import pytest
 
-from altair_save import save
+from altair_savechart import save
 
 
 @pytest.fixture

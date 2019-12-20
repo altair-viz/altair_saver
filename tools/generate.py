@@ -3,10 +3,10 @@ import os
 import sys
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from altair_save.core import Saver  # noqa: E402
+from altair_savechart.core import Saver  # noqa: E402
 
 test_cases = os.path.join(
-    os.path.dirname(__file__), "..", "altair_save", "tests", "test_cases"
+    os.path.dirname(__file__), "..", "altair_savechart", "tests", "test_cases"
 )
 cases = sorted(set(f.split(".")[0] for f in os.listdir(test_cases)))
 
