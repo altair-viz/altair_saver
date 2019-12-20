@@ -22,4 +22,4 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --doctest-modules altair_data_server
+        pytest --doctest-modules altair_viewer
