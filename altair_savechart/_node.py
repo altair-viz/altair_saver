@@ -1,38 +1,26 @@
 import json
 import os
 import subprocess
-from typing import TYPE_CHECKING, TypeVar, Callable
 
 import altair as alt
 from altair_savechart._saver import Mimebundle, Saver
-
-if TYPE_CHECKING:
-    F = TypeVar("F")
-
-    def lru_cache(n: int) -> Callable[[F], F]:
-        pass
-
-
-else:
-    from functools import lru_cache
 
 
 class _NodeCommands:
     """Tools for calling vega node command line."""
 
-    def __init__(self, global_: bool = True):
-        self._global = global_
+    def __init__(self, global_: bool = True, npm_root: str = None):
+        self._npm_root = npm_root or self._get_npm_root(global_)
         if global_:
             self._install_cmd = "Install with npm install -g vega-lite vega-cli"
         else:
             self._install_cmd = "Install with npm install vega-lite vega-cli"
 
-    @property  # type: ignore
-    @lru_cache(1)
-    def npm_root(self) -> str:
+    @staticmethod
+    def _get_npm_root(global_: bool) -> str:
         """Return the npm root directory"""
         cmd = ["npm", "root"]
-        if self._global:
+        if global_:
             cmd.append("--global")
         npm_root = subprocess.check_output(cmd, encoding="utf-8").strip()
         if not os.path.isdir(npm_root):
@@ -40,7 +28,7 @@ class _NodeCommands:
         return npm_root
 
     def vl2vg(self, spec: dict) -> dict:
-        vl2vg = os.path.join(self.npm_root, "vega-lite", "bin", "vl2vg")
+        vl2vg = os.path.join(self._npm_root, "vega-lite", "bin", "vl2vg")
         if not os.path.exists(vl2vg):
             raise RuntimeError(
                 f"Cannot find vl2vg command: tried {vl2vg}\n{self._install_cmd}"
@@ -50,7 +38,7 @@ class _NodeCommands:
         return json.loads(vg_json)
 
     def vg2png(self, spec: dict) -> bytes:
-        vg2png = os.path.join(self.npm_root, "vega-cli", "bin", "vg2png")
+        vg2png = os.path.join(self._npm_root, "vega-cli", "bin", "vg2png")
         if not os.path.exists(vg2png):
             raise RuntimeError(
                 f"Cannot find vg2png command: tried {vg2png}\n{self._install_cmd}"
@@ -59,7 +47,7 @@ class _NodeCommands:
         return subprocess.check_output([vg2png], input=vg_json)
 
     def vg2pdf(self, spec: dict) -> bytes:
-        vg2pdf = os.path.join(self.npm_root, "vega-cli", "bin", "vg2pdf")
+        vg2pdf = os.path.join(self._npm_root, "vega-cli", "bin", "vg2pdf")
         if not os.path.exists(vg2pdf):
             raise RuntimeError(
                 f"Cannot find vg2pdf command: tried {vg2pdf}\n{self._install_cmd}"
@@ -68,7 +56,7 @@ class _NodeCommands:
         return subprocess.check_output([vg2pdf], input=vg_json)
 
     def vg2svg(self, spec: dict) -> str:
-        vg2svg = os.path.join(self.npm_root, "vega-cli", "bin", "vg2svg")
+        vg2svg = os.path.join(self._npm_root, "vega-cli", "bin", "vg2svg")
         if not os.path.exists(vg2svg):
             raise RuntimeError(
                 f"Cannot find vg2svg command: tried {vg2svg}\n{self._install_cmd}"
