@@ -1,5 +1,5 @@
 import pytest
-from altair_viewer._core import _get_script
+from altair_viewer._scripts import _get_script
 
 
 @pytest.mark.parametrize("package", ["vega", "vega-lite", "vega-embed"])

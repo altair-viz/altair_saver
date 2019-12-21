@@ -69,6 +69,9 @@ setup(
     include_package_data=True,
     install_requires=get_install_requirements("requirements.txt"),
     python_requires=">=3.6",
+    entry_points={
+        "altair.vegalite.v4.renderer": ["altair_viewer=altair_viewer:render",],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
