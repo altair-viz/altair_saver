@@ -1,2 +1,2 @@
 altair
-altair_data_server
+altair_data_server >= 0.4.0
