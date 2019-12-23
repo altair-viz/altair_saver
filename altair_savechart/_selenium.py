@@ -9,7 +9,7 @@ import altair as alt
 from altair_savechart import _versions
 from altair_savechart._saver import Mimebundle, MimeType, Saver
 
-from altair_data_server._provide import _Provider, _Resource
+from altair_data_server import Provider, Resource
 
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -154,8 +154,8 @@ class SeleniumSaver(Saver):
     """Save charts using a selenium engine."""
 
     _registry: _DriverRegistry = _DriverRegistry()
-    _provider: Optional[_Provider] = None
-    _resources: Dict[str, _Resource] = {}
+    _provider: Optional[Provider] = None
+    _resources: Dict[str, Resource] = {}
 
     def __init__(
         self,
@@ -182,7 +182,7 @@ class SeleniumSaver(Saver):
     @classmethod
     def _serve(cls, content: str, extension: str) -> str:
         if cls._provider is None:
-            cls._provider = _Provider()
+            cls._provider = Provider()
         resource = cls._provider.create(
             content=content,
             extension=extension,
