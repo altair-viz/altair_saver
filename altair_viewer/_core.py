@@ -4,7 +4,7 @@ from typing import Dict, Optional, Union
 import webbrowser
 
 import altair as alt
-from altair_data_server._provide import _Provider, _Resource
+from altair_data_server import Provider, Resource
 from altair_viewer._scripts import _get_script
 
 
@@ -40,13 +40,13 @@ HTML = """
 
 class ChartViewer:
     _counter: int = 0
-    _provider: Optional[_Provider] = None
-    _resources: Dict[str, _Resource] = {}
+    _provider: Optional[Provider] = None
+    _resources: Dict[str, Resource] = {}
 
     @classmethod
-    def provider(cls) -> _Provider:
+    def provider(cls) -> Provider:
         if cls._provider is None:
-            cls._provider = _Provider()
+            cls._provider = Provider()
             for package in ["vega", "vega-lite", "vega-embed"]:
                 cls._resources[package] = cls._provider.create(
                     content=_get_script(package), route=f"scripts/{package}.js"
