@@ -119,9 +119,12 @@ class ChartViewer:
         return f"Displaying chart at {self.url}"
 
     def render(
-        self, chart: Union[dict, alt.TopLevelMixin], embed_opt: Optional[dict] = None,
+        self,
+        chart: Union[dict, alt.TopLevelMixin],
+        embed_opt: Optional[dict] = None,
+        open_browser: bool = False,
     ) -> Dict[str, str]:
-        msg = self.display(chart, embed_opt)
+        msg = self.display(chart, embed_opt, open_browser=open_browser)
         return {
             "text/plain": msg,
             "text/html": f"Displaying chart at <a href='{self.url}'>{self.url}</a>",
