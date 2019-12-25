@@ -15,6 +15,7 @@ def http_client() -> HTTPClient:
 @pytest.fixture(scope="module")
 def provider() -> Iterator[EventProvider]:
     provider = EventProvider()
+    provider.start()
     yield provider
     provider.stop()
 
