@@ -71,7 +71,8 @@ class ChartViewer:
     _resources: Dict[str, Resource] = {}
     _stream: Optional[DataSource] = None
 
-    def init_provider(self) -> None:
+    def _initialize(self) -> None:
+        """Initialize the viewer."""
         # TODO: - allow specification of vega/vega-lite versions
         #       - allow serving resources from CDN
         if self._provider is None:
@@ -97,35 +98,117 @@ class ChartViewer:
             self._stream = self._provider.create_stream("spec")
 
     @property
-    def url(self):
+    def url(self) -> str:
+        """Return the main chart URL."""
         if "main" not in self._resources:
-            self.init_provider()
+            self._initialize()
         return self._resources["main"].url
 
     def display(
         self,
         chart: Union[dict, alt.TopLevelMixin],
+        inline: bool = False,
         embed_opt: Optional[dict] = None,
         open_browser: bool = True,
-    ) -> str:
+    ) -> None:
+        """Display an Altair, Vega-Lite, or Vega chart.
+
+        Parameters
+        ----------
+        chart : alt.Chart or dict
+            The chart or chart specification to display.
+        inline : bool
+            If False (default) then open a new window to display the chart.
+            If True, then display the chart inline in the Jupyter notebook.
+        embed_opt : dict (optional)
+            The Vega embed options that control the dispay of the chart.
+        open_browser : bool (optional)
+            If True, then attempt to automatically open a web browser window
+            pointing to the displayed chart.
+
+        See Also
+        --------
+        render : Jupyter renderer for chart.
+        show : display a chart and start event loop.
+        """
+        if inline:
+            raise NotImplementedError("Inline is not yet implemented.")
         if isinstance(chart, alt.TopLevelMixin):
             chart = chart.to_dict()
-        self.init_provider()
+        self._initialize()
         if self._stream is None:
             raise RuntimeError("Internal: _stream is not defined.")
         self._stream.send(json.dumps({"spec": chart, "embedOpt": embed_opt or {}}))
         if open_browser:
             webbrowser.open(self.url)
-        return f"Displaying chart at {self.url}"
 
     def render(
         self,
         chart: Union[dict, alt.TopLevelMixin],
+        inline: bool = False,
         embed_opt: Optional[dict] = None,
         open_browser: bool = False,
     ) -> Dict[str, str]:
-        msg = self.display(chart, embed_opt, open_browser=open_browser)
+        """Jupyter renderer for Altair/Vega charts.
+
+        Use this to display a chart within a Jupyter or IPython session.
+
+        Parameters
+        ----------
+        chart : alt.Chart or dict
+            The chart or chart specification to display.
+        inline : bool
+            If False (default) then open a new browser window with the chart.
+            If True, then render the chart inline in the notebook.
+        embed_opt : dict (optional)
+            The Vega embed options that control the dispay of the chart.
+        open_browser : bool (optional)
+            If True, then attempt to automatically open a web browser window
+            pointing to the displayed chart.
+
+        Returns
+        -------
+        mimebundle : dict
+            Mimebundle dictating what is displayed in IPython/Juputer outputs.
+
+        See Also
+        --------
+        show : display a chart and start event loop.
+        """
+        if inline:
+            raise NotImplementedError("Inline is not yet implemented.")
+        self.display(chart, embed_opt=embed_opt, open_browser=open_browser)
         return {
-            "text/plain": msg,
+            "text/plain": f"Displaying chart at {self.url}",
             "text/html": f"Displaying chart at <a href='{self.url}'>{self.url}</a>",
         }
+
+    def show(
+        self,
+        chart: Union[dict, alt.TopLevelMixin],
+        embed_opt: Optional[dict] = None,
+        open_browser: bool = True,
+    ) -> None:
+        """Show chart and start event loop to keep server from closing.
+
+        Use this to show a chart within a stand-alone script, to prevent the Python process
+        from ending when the script finishes.
+
+        Parameters
+        ----------
+        chart : alt.Chart or dict
+            The chart or chart specification to display.
+        embed_opt : dict (optional)
+            The Vega embed options that control the dispay of the chart.
+        open_browser : bool (optional)
+            If True, then attempt to automatically open a web browser window
+            pointing to the displayed chart.
+
+        See Also
+        --------
+        render : Jupyter renderer for chart.
+        """
+        self.display(chart, embed_opt=embed_opt, open_browser=open_browser)
+        print(f"Displaying chart at {self.url}")
+        if self._provider is not None:
+            self._provider._server_thread.join()
