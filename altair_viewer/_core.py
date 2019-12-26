@@ -1,6 +1,7 @@
 import json
 import pkgutil
 from typing import Dict, Optional, Union
+import uuid
 import webbrowser
 
 import altair as alt
@@ -28,7 +29,6 @@ HTML = """
   <body>
     <div id="{output_div}" class="altair-chart"></div>
     <script type="text/javascript">
-        
         function showSpec(spec, embedOpt) {{
             const el = document.getElementById("{output_div}");
             vegaEmbed(el, spec, embedOpt)
@@ -46,23 +46,67 @@ HTML = """
 
         eventSource.onmessage = function(event) {{
             console.log("message:", event);
-            console.log("data:", event.data);
             var data = JSON.parse(event.data);
-            console.log(data["spec"])
-            console.log(data["embedOpt"])
-            showSpec(data["spec"], data["embedOpt"])
+            console.log(data["spec"]);
+            console.log(data["embedOpt"]);
+            showSpec(data["spec"], data["embedOpt"]);
         }};
 
         eventSource.onerror = function(event) {{
-            console.log("error:", event)
+            console.log("error:", event);
         }};
 
         eventSource.onopen = function() {{
-            console.log("open:", event)
+            console.log("open:", event);
         }};
     </script>
   </body>
 </html>
+"""
+
+INLINE_HTML = """
+<div id="{output_div}"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt) {{
+    const outputDiv = document.getElementById("{output_div}");
+    const paths = {{
+      "vega": "{vega_url}",
+      "vega-lite": "{vegalite_url}",
+      "vega-embed": "{vegaembed_url}",
+    }};
+    function loadScript(lib) {{
+      return new Promise(function(resolve, reject) {{
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${{paths[lib]}}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      }});
+    }}
+    function showError(err) {{
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${{err}}</div>`;
+      throw err;
+    }}
+    function displayChart(vegaEmbed) {{
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${{err.message}}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }}
+
+    if(typeof define === "function" && define.amd) {{
+        requirejs.config({{paths}});
+        require(["vega-embed"], displayChart, err => showError(`Error loading script: ${{err.message}}`));
+    }} else if (typeof vegaEmbed === "function") {{
+        displayChart(vegaEmbed);
+    }} else {{
+        loadScript("vega")
+            .then(() => loadScript("vega-lite"))
+            .then(() => loadScript("vega-embed"))
+            .catch(showError)
+            .then(() => displayChart(vegaEmbed));
+    }}
+  }})({spec}, {embedOpt});
+</script>
 """
 
 
@@ -104,6 +148,22 @@ class ChartViewer:
             self._initialize()
         return self._resources["main"].url
 
+    def _inline_html(
+        self, chart: Union[dict, alt.TopLevelMixin], embed_opt: Optional[dict] = None
+    ) -> str:
+        """Return inline HTML representation of the chart."""
+        if isinstance(chart, alt.TopLevelMixin):
+            chart = chart.to_dict()
+        assert isinstance(chart, dict)
+        return INLINE_HTML.format(
+            output_div=f"altair-chart-{uuid.uuid4().hex}",
+            vega_url=self._resources["vega"].url,
+            vegalite_url=self._resources["vega-lite"].url,
+            vegaembed_url=self._resources["vega-embed"].url,
+            spec=json.dumps(chart),
+            embedOpt=json.dumps(embed_opt or {}),
+        )
+
     def display(
         self,
         chart: Union[dict, alt.TopLevelMixin],
@@ -131,15 +191,19 @@ class ChartViewer:
         render : Jupyter renderer for chart.
         show : display a chart and start event loop.
         """
-        if inline:
-            raise NotImplementedError("Inline is not yet implemented.")
         if isinstance(chart, alt.TopLevelMixin):
             chart = chart.to_dict()
+        assert isinstance(chart, dict)
         self._initialize()
         if self._stream is None:
             raise RuntimeError("Internal: _stream is not defined.")
-        self._stream.send(json.dumps({"spec": chart, "embedOpt": embed_opt or {}}))
-        if open_browser:
+        if inline:
+            from IPython import display
+
+            display.display(display.HTML(self._inline_html(chart, embed_opt)))
+        else:
+            self._stream.send(json.dumps({"spec": chart, "embedOpt": embed_opt or {}}))
+        if open_browser and not inline:
             webbrowser.open(self.url)
 
     def render(
@@ -176,12 +240,16 @@ class ChartViewer:
         show : display a chart and start event loop.
         """
         if inline:
-            raise NotImplementedError("Inline is not yet implemented.")
-        self.display(chart, embed_opt=embed_opt, open_browser=open_browser)
-        return {
-            "text/plain": f"Displaying chart at {self.url}",
-            "text/html": f"Displaying chart at <a href='{self.url}'>{self.url}</a>",
-        }
+            self._initialize()
+            return {"text/html": self._inline_html(chart, embed_opt)}
+        else:
+            self.display(
+                chart, embed_opt=embed_opt, open_browser=open_browser, inline=inline
+            )
+            return {
+                "text/plain": f"Displaying chart at {self.url}",
+                "text/html": f"Displaying chart at <a href='{self.url}'>{self.url}</a>",
+            }
 
     def show(
         self,
