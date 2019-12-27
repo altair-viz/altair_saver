@@ -137,7 +137,7 @@ class ChartViewer:
                     vegaembed_url=self._resources["vega-embed"].url,
                     output_div="altair-chart",
                 ),
-                route="index.html",
+                route="",
             )
             self._stream = self._provider.create_stream("spec")
 
@@ -248,7 +248,7 @@ class ChartViewer:
             )
             return {
                 "text/plain": f"Displaying chart at {self.url}",
-                "text/html": f"Displaying chart at <a href='{self.url}'>{self.url}</a>",
+                "text/html": f"Displaying chart at <a href='{self.url}' target='_blank'>{self.url}</a>",
             }
 
     def show(
