@@ -277,6 +277,9 @@ class ChartViewer:
         render : Jupyter renderer for chart.
         """
         self.display(chart, embed_opt=embed_opt, open_browser=open_browser)
-        print(f"Displaying chart at {self.url}")
-        if self._provider is not None:
+        print(f" Displaying chart at {self.url} (Ctrl-C to quit)", end="", flush=True)
+        assert self._provider is not None
+        try:
             self._provider._server_thread.join()
+        except KeyboardInterrupt:
+            print("\n Exiting...")
