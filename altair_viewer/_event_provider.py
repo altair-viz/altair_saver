@@ -7,6 +7,7 @@ from typing import MutableMapping
 
 class DataSource:
     """Data source for an event stream."""
+
     def __init__(
         self, provider: "EventProvider", stream_id: str, data: str = ""
     ) -> None:
@@ -25,6 +26,7 @@ class DataSource:
 
 class EventStreamHandler(tornado.web.RequestHandler):
     """Request handler for an event stream."""
+
     def initialize(self, data_sources):
         self._data_sources = data_sources
         self._current_value = defaultdict(str)
@@ -53,6 +55,7 @@ class EventStreamHandler(tornado.web.RequestHandler):
 
 class EventProvider(Provider):
     """A resource provider with event streams."""
+
     _data_sources: MutableMapping[str, DataSource]
     _stream_path: str
 
