@@ -9,6 +9,8 @@ This package provides tools for viewing Altair charts without a web connection. 
 be displayed either inline in a Jupyter notebook environment, or in a separate browser window
 for use in any environment.
 
+![Altair Viewer Gif](https://raw.githubusercontent.com/jakevdp/altair_viewer/master/images/viewer.gif)
+
 ## Installation
 The development version of Altair-viewer can be installed with pip:
 ```
