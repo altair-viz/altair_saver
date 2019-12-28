@@ -36,7 +36,6 @@ def test_selenium_mimebundle(name, data, mode, fmt, use_local_server):
     out = saver.mimebundle([fmt])
     out = out.popitem()[1]
     if fmt == "png":
-        # TODO: can we validate png output robustly?
         assert isinstance(out, bytes)
     elif fmt == "svg":
         assert out == data[fmt]

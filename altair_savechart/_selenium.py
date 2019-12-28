@@ -15,6 +15,11 @@ import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException
 
+try:
+    from altair_viewer import get_bundled_script
+except:  # noqa: E722
+    get_bundled_script = None
+
 CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
 HTML_TEMPLATE = """
@@ -167,7 +172,7 @@ class SeleniumSaver(Saver):
         driver_timeout: int = 20,
         scale_factor: float = 1,
         webdriver: str = "chrome",
-        use_local_server: bool = False,
+        offline: Optional[bool] = None,
         **kwargs,
     ):
         self._vega_version = vega_version
@@ -176,19 +181,21 @@ class SeleniumSaver(Saver):
         self._driver_timeout = driver_timeout
         self._scale_factor = scale_factor
         self._webdriver = webdriver
-        self._use_local_server = use_local_server
+        if offline is None:
+            offline = get_bundled_script is not None
+        self._offline = offline
         super().__init__(spec=spec, mode=mode)
 
     @classmethod
-    def _serve(cls, content: str, extension: str) -> str:
+    def _serve(cls, content: str, js_resources: dict) -> str:
         if cls._provider is None:
             cls._provider = Provider()
         resource = cls._provider.create(
-            content=content,
-            extension=extension,
-            headers={"Access-Control-Allow-Origin": "*"},
+            content=content, route="", headers={"Access-Control-Allow-Origin": "*"},
         )
         cls._resources[resource.url] = resource
+        for route, content in js_resources.items():
+            cls._resources[route] = cls._provider.create(content=content, route=route,)
         return resource.url
 
     @classmethod
@@ -200,43 +207,47 @@ class SeleniumSaver(Saver):
     def _extract(self, fmt: str) -> MimeType:
         driver = self._registry.get(self._webdriver, self._driver_timeout)
 
-        html = HTML_TEMPLATE.format(
-            vega_url=CDN_URL.format(package="vega", version=self._vega_version),
-            vegalite_url=CDN_URL.format(
-                package="vega-lite", version=self._vegalite_version
-            ),
-            vegaembed_url=CDN_URL.format(
-                package="vega-embed", version=self._vegaembed_version
-            ),
-        )
+        if self._offline:
+            js_resources = {
+                "vega.js": get_bundled_script("vega", self._vega_version),
+                "vega-lite.js": get_bundled_script("vega-lite", self._vegalite_version),
+                "vega-embed.js": get_bundled_script(
+                    "vega-embed", self._vegaembed_version
+                ),
+            }
+            html = HTML_TEMPLATE.format(
+                vega_url="/vega.js",
+                vegalite_url="/vega-lite.js",
+                vegaembed_url="/vega-embed.js",
+            )
+        else:
+            js_resources = {}
+            html = HTML_TEMPLATE.format(
+                vega_url=CDN_URL.format(package="vega", version=self._vega_version),
+                vegalite_url=CDN_URL.format(
+                    package="vega-lite", version=self._vegalite_version
+                ),
+                vegaembed_url=CDN_URL.format(
+                    package="vega-embed", version=self._vegaembed_version
+                ),
+            )
 
-        def _run_script(url):
-            driver.get("about:blank")
-            driver.get(url)
-            try:
-                driver.find_element_by_id("vis")
-            except NoSuchElementException:
-                raise RuntimeError(f"Could not load {url}")
+        url = self._serve(html, js_resources)
+        driver.get("about:blank")
+        driver.get(url)
+        try:
+            driver.find_element_by_id("vis")
+        except NoSuchElementException:
+            raise RuntimeError(f"Could not load {url}")
+        if not self._offline:
             online = driver.execute_script("return navigator.onLine")
             if not online:
                 raise RuntimeError(
                     f"Internet connection required for saving chart as {fmt}"
                 )
-            return driver.execute_async_script(
-                EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
-            )
-
-        if self._use_local_server:
-            try:
-                url = self._serve(html, extension="html")
-                return _run_script(url)
-            finally:
-                self._stop_serving()
-        else:
-            with temporary_filename(suffix=".html") as htmlfile:
-                with open(htmlfile, "w") as f:
-                    f.write(html)
-                return _run_script(f"file://{htmlfile}")
+        return driver.execute_async_script(
+            EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
+        )
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         if self._mode not in ["vega", "vega-lite"]:
