@@ -12,7 +12,22 @@ def _script_listing() -> Dict[str, List[str]]:
     return json.loads(content)
 
 
-def _get_script(package: str, version: str = "") -> str:
+def get_bundled_script(package: str, version: str = "") -> str:
+    """Get a bundled script from this pacakge
+
+    Parameters
+    ----------
+    package : str
+        The name of the package to get (e.g. "vega", "vega-lite", "vega-embed")
+    version : str (optional)
+        The version of the package to use. If not specified, use the most recent
+        available version.
+
+    Returns
+    -------
+    content : str
+        The content of the script.
+    """
     listing = _script_listing()
     if package not in listing:
         raise ValueError(

@@ -6,7 +6,7 @@ import webbrowser
 
 import altair as alt
 from altair_data_server import Provider, Resource
-from altair_viewer._scripts import _get_script
+from altair_viewer._scripts import get_bundled_script
 from altair_viewer._event_provider import EventProvider, DataSource
 
 
@@ -123,7 +123,7 @@ class ChartViewer:
             self._provider = EventProvider()
             for package in ["vega", "vega-lite", "vega-embed"]:
                 self._resources[package] = self._provider.create(
-                    content=_get_script(package), route=f"scripts/{package}.js"
+                    content=get_bundled_script(package), route=f"scripts/{package}.js"
                 )
             favicon = pkgutil.get_data("altair_viewer", "static/favicon.ico")
             if favicon is not None:
