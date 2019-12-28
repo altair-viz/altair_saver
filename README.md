@@ -1,20 +1,20 @@
 # Altair viewer
 Offline chart viewer for Altair visualizations
 
-[![github actions](https://github.com/jakevdp/altair_viewer/workflows/build/badge.svg)](https://github.com/jakevdp/altair_viewer/actions?query=workflow%3Abuild)
-[![github actions](https://github.com/jakevdp/altair_viewer/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_viewer/actions?query=workflow%3Alint)
+[![github actions](https://github.com/altair-viz/altair_viewer/workflows/build/badge.svg)](https://github.com/altair-viz/altair_viewer/actions?query=workflow%3Abuild)
+[![github actions](https://github.com/altair-viz/altair_viewer/workflows/lint/badge.svg)](https://github.com/altair-viz/altair_viewer/actions?query=workflow%3Alint)
 [![code style black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This package provides tools for viewing Altair charts without a web connection. Charts can
 be displayed either inline in a Jupyter notebook environment, or in a separate browser window
 for use in any environment.
 
-![Altair Viewer Gif](https://raw.githubusercontent.com/jakevdp/altair_viewer/master/images/viewer.gif)
+![Altair Viewer Gif](https://raw.githubusercontent.com/altair-viz/altair_viewer/master/images/viewer.gif)
 
 ## Installation
 The development version of Altair-viewer can be installed with pip:
 ```
-$ pip install git+http://github.com/jakevdp/altair_viewer.git
+$ pip install git+http://github.com/altair-viz/altair_viewer.git
 ```
 
 ## Usage: General
