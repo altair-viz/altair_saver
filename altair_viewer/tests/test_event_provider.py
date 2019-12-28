@@ -24,21 +24,14 @@ def test_simple_stream(http_client, provider):
     stream = provider.create_stream("data")
     assert stream.url.endswith("stream/data")
 
-    class StreamData:
-        def __init__(self):
-            self.response = None
-
-        def __call__(self, response):
-            self.response = response
-
     for content in ["AAAAA", "BBBBB"]:
         stream.send(content)
-        stream_data = StreamData()
+        result = []
 
         # Request will never return, so set a short timeout and catch the expected error.
         request = HTTPRequest(
-            url=stream.url, streaming_callback=stream_data, request_timeout=0.5
+            url=stream.url, streaming_callback=result.append, request_timeout=0.5
         )
         with pytest.raises(HTTPTimeoutError):
             HTTPClient().fetch(request)
-        assert stream_data.response == f"data: {content}\n\n".encode()
+        assert result == [f"data: {content}\n\n".encode()]
