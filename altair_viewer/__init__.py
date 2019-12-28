@@ -1,9 +1,10 @@
 """Altair viewer provides offline viewing for Altair charts."""
 
 __version__ = "0.1.0.dev0"
-__all__ = ["ChartViewer", "display", "render", "show"]
+__all__ = ["ChartViewer", "display", "render", "show", "get_bundled_script"]
 
 from altair_viewer._core import ChartViewer
+from altair_viewer._scripts import get_bundled_script
 
 _global_viewer = ChartViewer()
 display = _global_viewer.display
