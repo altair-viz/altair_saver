@@ -21,5 +21,5 @@ jobs:
         pip install .
     - name: Test with pytest
       run: |
-        pip install pytest
+        pip install pytest IPython
         pytest --doctest-modules altair_viewer
