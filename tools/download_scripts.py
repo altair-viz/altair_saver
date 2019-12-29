@@ -3,7 +3,7 @@ import os
 import shutil
 from urllib.request import urlretrieve
 
-PACKAGES = {"vega": ["5.9.0"], "vega-lite": ["4.0.2"], "vega-embed": ["6.2.1"]}
+PACKAGES = {"vega": ["5.9.0"], "vega-lite": ["4.0.0"], "vega-embed": ["6.2.1"]}
 
 OUTDIR = os.path.join(os.path.dirname(__file__), "..", "altair_viewer", "scripts")
 
