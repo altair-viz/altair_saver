@@ -28,9 +28,8 @@ and ``altair_viewer.show()``. Their use is slightly different:
   is not suitable for standalone scripts.
 
 - ``altair_viewer.show(chart)`` is meant for use once at the end of a script. It does the same
-  as ``display()``, but rather than using a self-terminating background thread, it joins the
-  server to the main thread, so that the chart will display indefinitely until the process is
-  canceled.
+   as ``display()``, but automatically opens a browser window, and adds an input
+  prompt to prevent the script (and the server it creates) from terminating.
 
 ## Usage: IPython & Jupyter
 Within Jupyter notebook, IPython notebook, and related environments that support
