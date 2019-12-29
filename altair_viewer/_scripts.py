@@ -1,7 +1,9 @@
 import json
 import functools
 import pkgutil
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+from altair_viewer._utils import find_version
 
 
 @functools.lru_cache(1)
@@ -12,7 +14,7 @@ def _script_listing() -> Dict[str, List[str]]:
     return json.loads(content)
 
 
-def get_bundled_script(package: str, version: str = "") -> str:
+def get_bundled_script(package: str, version: Optional[str] = None) -> str:
     """Get a bundled script from this pacakge
 
     Parameters
@@ -33,18 +35,10 @@ def get_bundled_script(package: str, version: str = "") -> str:
         raise ValueError(
             f"package {package!r} not recognized. Available: {list(listing)}"
         )
-    versions = listing[package]
-    if version and version not in versions:
-        raise ValueError(
-            f"version {package}={version!r} not recognized. Available: {list(listing)}"
-        )
-    if not version:
-        # TODO: choose most recent
-        version = versions[0]
-
-    content = pkgutil.get_data("altair_viewer", f"scripts/{package}-{version}.js")
+    version_str = find_version(version, listing[package])
+    content = pkgutil.get_data("altair_viewer", f"scripts/{package}-{version_str}.js")
     if content is None:
         raise ValueError(
-            f"Cannot locate file altair_viewer/scripts/{package}-{version}.js"
+            f"Cannot locate file altair_viewer/scripts/{package}-{version_str}.js"
         )
     return content.decode()
