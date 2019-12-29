@@ -33,5 +33,5 @@ def test_simple_stream(http_client, provider):
             url=stream.url, streaming_callback=result.append, request_timeout=0.5
         )
         with pytest.raises(HTTPTimeoutError):
-            HTTPClient().fetch(request)
+            http_client.fetch(request)
         assert result == [f"data: {content}\n\n".encode()]
