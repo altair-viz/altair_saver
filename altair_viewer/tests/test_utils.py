@@ -1,4 +1,4 @@
-from altair_viewer._utils import Version
+from altair_viewer._utils import Version, find_version
 
 import pytest
 
@@ -37,3 +37,17 @@ def test_ordering(sorted_sequence):
     random.shuffle(sequence)
     out = [str(v) for v in sorted(map(Version, sequence))]
     assert out == sorted_sequence
+
+
+@pytest.mark.parametrize(
+    "version, candidates, strict_micro, expected",
+    [
+        ("4.0.0", ["4.0.0", "4.0.1", "4.0.2"], True, "4.0.0"),
+        ("4.0.0", ["4.0.0", "4.0.1", "4.0.2"], False, "4.0.2"),
+        ("4.0.0.dev0", ["4.0.0.dev0", "4.0.1.dev0", "4.0.2.dev0"], True, "4.0.0.dev0"),
+        ("4.0.0.dev0", ["4.0.0.dev0", "4.0.1.dev0", "4.0.2.dev0"], False, "4.0.0.dev0"),
+    ],
+)
+def test_matches(version, candidates, strict_micro, expected):
+    result = find_version(version, candidates, strict_micro=strict_micro)
+    assert result == expected

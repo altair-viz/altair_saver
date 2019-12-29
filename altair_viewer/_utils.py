@@ -137,7 +137,9 @@ class Version:
         return f"Version(major={self.major}, minor={self.minor}, micro={self.micro}, dev={self.dev})"
 
 
-def find_version(version: Optional[str], candidates: List[str]) -> str:
+def find_version(
+    version: Optional[str], candidates: List[str], strict_micro: bool = False
+) -> str:
     """Find a matching version string given a list of candidate versions.
 
     Parameters
@@ -146,6 +148,9 @@ def find_version(version: Optional[str], candidates: List[str]) -> str:
         The version to match. If None, the newest version will be used.
     candidates : list
         The list of candidate versions to consider.
+    strict_micro : bool
+        If True, then ensure that the micro version matches exactly.
+        If False (default), then let the micro version float to the newest version.
 
     Returns
     -------
@@ -179,6 +184,8 @@ def find_version(version: Optional[str], candidates: List[str]) -> str:
         return str(cand[-1])
 
     v = Version(version)
+    if not strict_micro and not v.dev:
+        v.micro = None
     matches = [c for c in cand if v.matches(c)]
     if not matches:
         raise NoMatchingVersions(
