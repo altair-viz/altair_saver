@@ -137,8 +137,8 @@ class Version:
         return f"Version(major={self.major}, minor={self.minor}, micro={self.micro}, dev={self.dev})"
 
 
-def _get_version(version: Optional[str], candidates: List[str]) -> str:
-    """Get the matching version string given a list of candidates
+def find_version(version: Optional[str], candidates: List[str]) -> str:
+    """Find a matching version string given a list of candidate versions.
 
     Parameters
     ----------
@@ -158,14 +158,16 @@ def _get_version(version: Optional[str], candidates: List[str]) -> str:
 
     Examples
     --------
-    >>> _get_version('4.0.2', ['4.0.2'])
-    '4.0.2'
-    >>> _get_version('4.0', ['4.0.0', '4.1.0'])
-    '4.0.0'
-    >>> _get_version(None, ['4.0.0', '4.1.0', '4.1.0.dev0'])
-    '4.1.0'
-    >>> _get_version('3', ['3.0.0', '3.1.0', '4.0.0', '4.1.0'])
+    >>> find_version('3', ['3.1.0', '4.0.0', '4.1.0', '4.2.0-alpha0'])
     '3.1.0'
+    >>> find_version('4', ['3.1.0', '4.0.0', '4.1.0', '4.2.0-alpha0'])
+    '4.1.0'
+    >>> find_version('4.0', ['3.1.0', '4.0.0', '4.1.0', '4.2.0-alpha0'])
+    '4.0.0'
+    >>> find_version(None, ['3.1.0', '4.0.0', '4.1.0', '4.2.0-alpha0'])
+    '4.1.0'
+    >>> find_version("4.2.0-alpha0", ['3.1.0', '4.0.0', '4.1.0', '4.2.0-alpha0'])
+    '4.2.0-alpha0'
     """
     if not candidates:
         raise NoMatchingVersions("No candidate versions provided.")
