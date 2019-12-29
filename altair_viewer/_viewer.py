@@ -272,7 +272,8 @@ class ChartViewer:
 
         See Also
         --------
-        show : display a chart and start event loop.
+        display : display a chart.
+        show : display a chart and pause execution.
         """
         if inline:
             self._initialize()
@@ -292,7 +293,7 @@ class ChartViewer:
         embed_opt: Optional[dict] = None,
         open_browser: bool = True,
     ) -> None:
-        """Show chart and start event loop to keep server from closing.
+        """Show chart and prompt to pause execution.
 
         Use this to show a chart within a stand-alone script, to prevent the Python process
         from ending when the script finishes.
@@ -309,12 +310,11 @@ class ChartViewer:
 
         See Also
         --------
+        display : Display a chart without pausing execution.
         render : Jupyter renderer for chart.
         """
         self.display(chart, embed_opt=embed_opt, open_browser=open_browser)
-        print(f" Displaying chart at {self.url} (Ctrl-C to quit)", end="", flush=True)
-        assert self._provider is not None
-        try:
-            self._provider._server_thread.join()
-        except KeyboardInterrupt:
-            print("\n Exiting...")
+        print(f" Displaying chart at {self.url}")
+        selection = ""
+        while selection.upper() != "Q":
+            selection = input("  (Q to quit) >")

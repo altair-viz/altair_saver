@@ -8,6 +8,7 @@ import pytest
 from tornado.httpclient import HTTPClient
 
 from altair_viewer import ChartViewer
+import altair_viewer._viewer
 
 
 CDN_URL = "https://cdn.jsdelivr.net/npm/"
@@ -16,11 +17,13 @@ CDN_URL = "https://cdn.jsdelivr.net/npm/"
 class Mock:
     calls: List[Tuple[Tuple[Any, ...], Dict[str, Any]]]
 
-    def __init__(self):
+    def __init__(self, return_value=None):
         self.calls = []
+        self.return_value = return_value
 
     def __call__(self, *args: Any, **kwargs: Any) -> None:
         self.calls.append((args, kwargs))
+        return self.return_value
 
 
 @pytest.fixture
@@ -166,6 +169,9 @@ def test_show(
     viewer = viewers[use_bundled_js]
     assert viewer._use_bundled_js == use_bundled_js
 
+    input_mock = Mock("Q")
+    monkeypatch.setattr(altair_viewer._viewer, "input", input_mock, raising=False)
+
     browser_open = Mock()
     monkeypatch.setattr(webbrowser, "open", browser_open)
 
@@ -175,10 +181,6 @@ def test_show(
     stream_send = Mock()
     assert viewer._stream is not None
     monkeypatch.setattr(viewer._stream, "send", stream_send)
-
-    thread_join = Mock()
-    assert viewer._provider is not None
-    monkeypatch.setattr(viewer._provider._server_thread, "join", thread_join)
 
     html = http_client.fetch(viewer.url).body.decode()
     if use_bundled_js:
@@ -190,4 +192,4 @@ def test_show(
     assert len(browser_open.calls) == (1 if open_browser else 0)
     assert len(ipython_display.calls) == 0
     assert len(stream_send.calls) == 1
-    assert len(thread_join.calls) == 1
+    assert len(input_mock.calls) == 1
