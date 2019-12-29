@@ -9,6 +9,7 @@ from altair_data_server import Provider, Resource
 from altair_viewer._scripts import get_bundled_script
 from altair_viewer._event_provider import EventProvider, DataSource
 
+CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
 HTML = """
 <html>
@@ -111,33 +112,49 @@ INLINE_HTML = """
 
 
 class ChartViewer:
-    _provider: Optional[Provider] = None
-    _resources: Dict[str, Resource] = {}
-    _stream: Optional[DataSource] = None
+    _provider: Optional[Provider]
+    _resources: Dict[str, Resource]
+    _stream: Optional[DataSource]
+    _use_bundled_js: bool
     _versions: Dict[str, Optional[str]]
 
     def __init__(
         self,
+        use_bundled_js: bool = True,
         vega_version: Optional[str] = alt.VEGA_VERSION,
         vegalite_version: Optional[str] = alt.VEGALITE_VERSION,
         vegaembed_version: Optional[str] = alt.VEGAEMBED_VERSION,
     ):
+        self._provider = None
+        self._resources = {}
+        self._stream = None
+        self._use_bundled_js = use_bundled_js
         self._versions = {
             "vega": vega_version,
             "vega-lite": vegalite_version,
             "vega-embed": vegaembed_version,
         }
 
+    def _package_url(self, package: str) -> str:
+        if self._use_bundled_js:
+            return self._resources[package].url
+        else:
+            return CDN_URL.format(package=package, version=self._versions.get(package))
+
     def _initialize(self) -> None:
         """Initialize the viewer."""
         # TODO: allow optionally serving resources from CDN
         if self._provider is None:
             self._provider = EventProvider()
-            for package in ["vega", "vega-lite", "vega-embed"]:
-                self._resources[package] = self._provider.create(
-                    content=get_bundled_script(package, self._versions.get(package)),
-                    route=f"scripts/{package}.js",
-                )
+            if self._use_bundled_js:
+                for package in ["vega", "vega-lite", "vega-embed"]:
+                    self._resources[package] = self._provider.create(
+                        content=get_bundled_script(
+                            package, self._versions.get(package)
+                        ),
+                        route=f"scripts/{package}.js",
+                    )
+
             favicon = pkgutil.get_data("altair_viewer", "static/favicon.ico")
             if favicon is not None:
                 self._resources["favicon.ico"] = self._provider.create(
@@ -145,10 +162,10 @@ class ChartViewer:
                 )
             self._resources["main"] = self._provider.create(
                 content=HTML.format(
-                    vega_url=self._resources["vega"].url,
-                    vegalite_url=self._resources["vega-lite"].url,
-                    vegaembed_url=self._resources["vega-embed"].url,
                     output_div="altair-chart",
+                    vega_url=self._package_url("vega"),
+                    vegalite_url=self._package_url("vega-lite"),
+                    vegaembed_url=self._package_url("vega-embed"),
                 ),
                 route="",
             )
@@ -175,9 +192,9 @@ class ChartViewer:
         assert isinstance(chart, dict)
         return INLINE_HTML.format(
             output_div=f"altair-chart-{uuid.uuid4().hex}",
-            vega_url=self._resources["vega"].url,
-            vegalite_url=self._resources["vega-lite"].url,
-            vegaembed_url=self._resources["vega-embed"].url,
+            vega_url=self._package_url("vega"),
+            vegalite_url=self._package_url("vega-lite"),
+            vegaembed_url=self._package_url("vega-embed"),
             spec=json.dumps(chart),
             embedOpt=json.dumps(embed_opt or {}),
         )
