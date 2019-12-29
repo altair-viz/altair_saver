@@ -114,16 +114,29 @@ class ChartViewer:
     _provider: Optional[Provider] = None
     _resources: Dict[str, Resource] = {}
     _stream: Optional[DataSource] = None
+    _versions: Dict[str, Optional[str]]
+
+    def __init__(
+        self,
+        vega_version: Optional[str] = alt.VEGA_VERSION,
+        vegalite_version: Optional[str] = alt.VEGALITE_VERSION,
+        vegaembed_version: Optional[str] = alt.VEGAEMBED_VERSION,
+    ):
+        self._versions = {
+            "vega": vega_version,
+            "vega-lite": vegalite_version,
+            "vega-embed": vegaembed_version,
+        }
 
     def _initialize(self) -> None:
         """Initialize the viewer."""
-        # TODO: - allow specification of vega/vega-lite versions
-        #       - allow serving resources from CDN
+        # TODO: allow optionally serving resources from CDN
         if self._provider is None:
             self._provider = EventProvider()
             for package in ["vega", "vega-lite", "vega-embed"]:
                 self._resources[package] = self._provider.create(
-                    content=get_bundled_script(package), route=f"scripts/{package}.js"
+                    content=get_bundled_script(package, self._versions.get(package)),
+                    route=f"scripts/{package}.js",
                 )
             favicon = pkgutil.get_data("altair_viewer", "static/favicon.ico")
             if favicon is not None:
@@ -140,6 +153,11 @@ class ChartViewer:
                 route="",
             )
             self._stream = self._provider.create_stream("spec")
+
+    def stop(self) -> None:
+        if self._provider is not None:
+            self._provider.stop()
+            self._provider = None
 
     @property
     def url(self) -> str:
