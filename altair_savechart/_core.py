@@ -1,4 +1,4 @@
-from typing import Any, Dict, IO, Union
+from typing import Any, Dict, IO, Optional, Union
 
 import altair as alt
 
@@ -13,7 +13,7 @@ METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 def save(
     chart: Union[alt.TopLevelMixin, SpecType],
     fp: Union[IO, str],
-    fmt: str = None,
+    fmt: Optional[str] = None,
     mode: str = "vega_lite",
     method: Union[str, type] = "selenium",
     **kwargs,
