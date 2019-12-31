@@ -57,7 +57,7 @@ class Saver(metaclass=abc.ABCMeta):
         else:
             return filename.split(".")[-1]
 
-    def mimebundle(self, fmts: Iterable[str]) -> Mimebundle:
+    def mimebundle(self, fmts: Union[str, Iterable[str]]) -> Mimebundle:
         """Return a mimebundle representation of the chart.
 
         Parameters
@@ -70,6 +70,8 @@ class Saver(metaclass=abc.ABCMeta):
         mimebundle : dict
             The chart's mimebundle representation.
         """
+        if isinstance(fmts, str):
+            fmts = [fmts]
         bundle: Mimebundle = {}
         for fmt in fmts:
             if fmt not in self.valid_formats:
