@@ -1,8 +1,6 @@
 import atexit
 import base64
-import contextlib
 import os
-import tempfile
 from typing import Dict, Optional, Union
 
 import altair as alt
@@ -77,25 +75,6 @@ if (format === 'vega') {
     console.error("Unrecognized format: " + fmt)
 }
 """
-
-
-@contextlib.contextmanager
-def temporary_filename(**kwargs):
-    """Create and clean-up a temporary file
-
-    Arguments are the same as those passed to tempfile.mkstemp
-
-    We could use tempfile.NamedTemporaryFile here, but that causes issues on
-    windows (see https://bugs.python.org/issue14243).
-    """
-    filedescriptor, filename = tempfile.mkstemp(**kwargs)
-    os.close(filedescriptor)
-
-    try:
-        yield filename
-    finally:
-        if os.path.exists(filename):
-            os.remove(filename)
 
 
 class _DriverRegistry:
