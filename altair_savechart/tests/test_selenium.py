@@ -1,15 +1,17 @@
 import base64
 import json
 import os
+from typing import Any, Dict, IO, Iterator, Tuple
 
 import pytest
 
 from altair_savechart._selenium import SeleniumSaver
 
 
-def get_test_cases():
+def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
     directory = os.path.join(os.path.dirname(__file__), "test_cases")
     cases = set(f.split(".")[0] for f in os.listdir(directory))
+    f: IO
     for case in sorted(cases):
         with open(os.path.join(directory, f"{case}.vl.json")) as f:
             vl = json.load(f)
@@ -28,13 +30,14 @@ def get_test_cases():
 @pytest.mark.parametrize("name,data", get_test_cases())
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
 @pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
-@pytest.mark.parametrize("use_local_server", [True, False])
-def test_selenium_mimebundle(name, data, mode, fmt, use_local_server):
+@pytest.mark.parametrize("offline", [True, False])
+def test_selenium_mimebundle(
+    name: str, data: Any, mode: str, fmt: str, offline: bool
+) -> None:
     if mode == "vega" and fmt in ["vega", "vega-lite"]:
         return
-    saver = SeleniumSaver(data[mode], mode=mode, use_local_server=use_local_server)
-    out = saver.mimebundle([fmt])
-    out = out.popitem()[1]
+    saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
+    out = saver.mimebundle(fmt).popitem()[1]
     if fmt == "png":
         assert isinstance(out, bytes)
     elif fmt == "svg":

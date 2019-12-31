@@ -2,15 +2,17 @@ import abc
 import contextlib
 import io
 import json
-from typing import Dict, IO, Iterable, Iterator, Optional, Union
+from typing import Any, Dict, IO, Iterable, Iterator, List, Optional, Union
 
 
 MimeType = Union[str, bytes, dict]
 Mimebundle = Dict[str, MimeType]
+JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
+JSONDict = Dict[str, JSON]
 
 
 @contextlib.contextmanager
-def _maybe_open(fp: Union[IO, str], mode="w") -> Iterator[IO]:
+def _maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
     """Write to string or file-like object"""
     if isinstance(fp, str):
         with open(fp, mode) as f:
@@ -26,12 +28,20 @@ def _maybe_open(fp: Union[IO, str], mode="w") -> Iterator[IO]:
 class Saver(metaclass=abc.ABCMeta):
     """
     Base class for saving Altair charts.
+
+    Subclasses should:
+    - specify the valid_formats class attribute
+    - override the _mimebundle() method
     """
 
-    valid_formats = ["png", "svg", "vega", "vega-lite"]
+    valid_formats: List[str] = []
 
-    def __init__(self, spec: dict, mode: str = "vega-lite"):
-        # TODO: extract mode from spec $schema if not specified.
+    def __init__(self, spec: JSONDict, mode: Optional[str] = None):
+        if mode is None:
+            # TODO: extract mode from spec $schema if not specified.
+            mode = "vega-lite"
+        if mode not in ["vega", "vega-lite"]:
+            raise ValueError("mode must be either 'vega' or 'vega-lite'")
         self._spec = spec
         self._mode = mode
 
@@ -98,7 +108,7 @@ class Saver(metaclass=abc.ABCMeta):
         if fmt not in self.valid_formats:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 
-        content = self.mimebundle([fmt]).popitem()[1]
+        content = self.mimebundle(fmt).popitem()[1]
         if isinstance(content, dict):
             with _maybe_open(fp, "w") as f:
                 json.dump(content, f, indent=2)

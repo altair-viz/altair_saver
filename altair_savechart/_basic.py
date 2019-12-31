@@ -7,13 +7,11 @@ from altair_savechart._saver import Saver, Mimebundle
 class BasicSaver(Saver):
     """Basic chart output."""
 
-    valid_formats: List[str] = ["vega-lite", "json", "vl.json"]
+    valid_formats: List[str] = ["vega-lite"]
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
-        if fmt not in self.valid_formats:
-            raise ValueError(
-                f"Invalid format: {fmt!r}. Must be one of {self.valid_formats}"
-            )
+        if self._mode == "vega":
+            raise ValueError("Cannot save vega spec as vega-lite.")
         return {
             "application/vnd.vegalite.v{}+json".format(
                 alt.VEGALITE_VERSION.split(".")[0]

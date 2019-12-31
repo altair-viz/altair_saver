@@ -2,21 +2,22 @@ from typing import Any, Dict, IO, Optional, Union
 
 import altair as alt
 
-from altair_savechart._selenium import SeleniumSaver
+from altair_savechart._basic import BasicSaver
+from altair_savechart._html import HTMLSaver
 from altair_savechart._node import NodeSaver
-
-SpecType = Dict[str, Any]
+from altair_savechart._saver import JSONDict
+from altair_savechart._selenium import SeleniumSaver
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 
 
 def save(
-    chart: Union[alt.TopLevelMixin, SpecType],
+    chart: Union[alt.TopLevelMixin, JSONDict],
     fp: Union[IO, str],
     fmt: Optional[str] = None,
     mode: str = "vega_lite",
     method: Union[str, type] = "selenium",
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Save an Altair, Vega, or Vega-Lite chart
 
@@ -38,14 +39,18 @@ def save(
         Additional keyword arguments are passed to Saver initialization.
     """
     Saver: type
-    if isinstance(method, type):
+    if fmt == "vega-lite":
+        Saver = BasicSaver
+    elif fmt == "html":
+        Saver = HTMLSaver
+    elif isinstance(method, type):
         Saver = method
     elif isinstance(method, str) and method in METHOD_DICT:
         Saver = METHOD_DICT[method]
     else:
         raise ValueError(f"unrecognized method: {method}")
 
-    spec: SpecType = {}
+    spec: JSONDict = {}
     if isinstance(chart, dict):
         spec = chart
     else:

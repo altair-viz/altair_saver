@@ -1,11 +1,11 @@
 import atexit
 import base64
 import os
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import altair as alt
 from altair_savechart import _versions
-from altair_savechart._saver import Mimebundle, MimeType, Saver
+from altair_savechart._saver import JSONDict, Mimebundle, MimeType, Saver
 
 from altair_data_server import Provider, Resource
 
@@ -72,7 +72,7 @@ if (format === 'vega') {
         .then(done)
         .catch(function(err) { console.error(err); });
 } else {
-    console.error("Unrecognized format: " + fmt)
+    console.error("Unrecognized format: " + format)
 }
 """
 
@@ -85,7 +85,7 @@ class _DriverRegistry:
 
     drivers: Dict[str, WebDriver]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.drivers = {}
 
     def get(self, webdriver: Union[str, WebDriver], driver_timeout: float) -> WebDriver:
@@ -137,13 +137,14 @@ class _DriverRegistry:
 class SeleniumSaver(Saver):
     """Save charts using a selenium engine."""
 
+    valid_formats: List[str] = ["png", "svg", "vega"]
     _registry: _DriverRegistry = _DriverRegistry()
     _provider: Optional[Provider] = None
     _resources: Dict[str, Resource] = {}
 
     def __init__(
         self,
-        spec: dict,
+        spec: JSONDict,
         mode: str = "vega-lite",
         vega_version: str = _versions.VEGA_VERSION,
         vegalite_version: str = _versions.VEGALITE_VERSION,
@@ -152,8 +153,7 @@ class SeleniumSaver(Saver):
         scale_factor: float = 1,
         webdriver: str = "chrome",
         offline: Optional[bool] = None,
-        **kwargs,
-    ):
+    ) -> None:
         self._vega_version = vega_version
         self._vegalite_version = vegalite_version
         self._vegaembed_version = vegaembed_version
@@ -166,7 +166,7 @@ class SeleniumSaver(Saver):
         super().__init__(spec=spec, mode=mode)
 
     @classmethod
-    def _serve(cls, content: str, js_resources: dict) -> str:
+    def _serve(cls, content: str, js_resources: Dict[str, str]) -> str:
         if cls._provider is None:
             cls._provider = Provider()
         resource = cls._provider.create(
@@ -178,7 +178,7 @@ class SeleniumSaver(Saver):
         return resource.url
 
     @classmethod
-    def _stop_serving(cls):
+    def _stop_serving(cls) -> None:
         if cls._provider is not None:
             cls._provider.stop()
             cls._provider = None
@@ -229,12 +229,6 @@ class SeleniumSaver(Saver):
         )
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
-        if self._mode not in ["vega", "vega-lite"]:
-            raise ValueError("mode must be either 'vega' or 'vega-lite'")
-
-        if self._mode == "vega" and fmt == "vega-lite":
-            raise ValueError("mode='vega' not compatible with fmt='vega-lite'")
-
         out: MimeType = {}
 
         if fmt == self._mode:
