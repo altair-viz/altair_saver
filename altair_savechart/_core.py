@@ -17,7 +17,7 @@ def _get_saver_for_format(fp: Union[IO, str], fmt: Optional[str]) -> Type[Saver]
     # TODO: allow other savers to be registered.
     if fmt is None:
         fmt = _extract_format(fp)
-    savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, NodeSaver, SeleniumSaver]
+    savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, SeleniumSaver, NodeSaver]
     for s in savers:
         if fmt in s.valid_formats and s.enabled():
             return s
