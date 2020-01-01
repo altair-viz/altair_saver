@@ -2,6 +2,7 @@ import atexit
 import base64
 import os
 from typing import Dict, List, Optional, Union
+import warnings
 
 import altair as alt
 from altair_savechart import _versions
@@ -11,7 +12,7 @@ from altair_data_server import Provider, Resource
 
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
 try:
     from altair_viewer import get_bundled_script
@@ -167,8 +168,19 @@ class SeleniumSaver(Saver):
 
     @classmethod
     def enabled(cls) -> bool:
-        # TODO: implement
-        raise NotImplementedError()
+        for driver in ["firefox", "chrome"]:
+            try:
+                cls._registry.get(driver, 20)
+            except WebDriverException:
+                pass
+            except Exception as e:
+                warnings.warn(
+                    f"Unexpected exception when attempting WebDriver creation: {e}"
+                )
+                pass
+            else:
+                return True
+        return False
 
     @classmethod
     def _serve(cls, content: str, js_resources: Dict[str, str]) -> str:

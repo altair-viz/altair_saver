@@ -43,3 +43,7 @@ def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
         assert out.startswith("<svg")
     else:
         assert out == data[fmt]
+
+
+def test_enabled():
+    assert NodeSaver.enabled()

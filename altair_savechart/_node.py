@@ -69,7 +69,7 @@ class NodeSaver(Saver):
     @classmethod
     def enabled(cls) -> bool:
         try:
-            return exec_path('vl2vg') and exec_path('vg2png')
+            return bool(exec_path("vl2vg") and exec_path("vg2png"))
         except ExecutableNotFound:
             return False
 
