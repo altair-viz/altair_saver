@@ -1,8 +1,9 @@
-import base64
+import io
 import json
 import os
 from typing import Any, Dict, IO, Iterator, Tuple
 
+from PIL import Image
 import pytest
 
 from altair_savechart.savers import NodeSaver
@@ -20,10 +21,7 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         with open(os.path.join(directory, f"{case}.svg")) as f:
             svg = f.read()
         with open(os.path.join(directory, f"{case}.png"), "rb") as f:
-            png_bytes = f.read()
-            png = "data:image/png;base64,{}".format(
-                base64.b64encode(png_bytes).decode()
-            )
+            png = f.read()
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
 
 
@@ -35,9 +33,18 @@ def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
         return
     saver = NodeSaver(data[mode], mode=mode)
     out = saver.mimebundle(fmt).popitem()[1]
-    if fmt in ["png", "pdf"]:
+    if fmt == "png":
+        assert isinstance(out, bytes)
+        im = Image.open(io.BytesIO(out))
+        assert im.format == "PNG"
+
+        im_expected = Image.open(io.BytesIO(data[fmt]))
+        assert abs(im.size[0] - im_expected.size[0]) < 5
+        assert abs(im.size[1] - im_expected.size[1]) < 5
+    elif fmt == "pdf":
         # TODO: can we validate binary output robustly?
         assert isinstance(out, bytes)
+        assert len(out) > 0
     elif fmt == "svg":
         assert isinstance(out, str)
         assert out.startswith("<svg")

@@ -1,9 +1,10 @@
-import base64
+import io
 import json
 import os
 from typing import Any, Dict, IO, Iterator, Tuple
 
 import pytest
+from PIL import Image
 
 from altair_savechart.savers import SeleniumSaver
 
@@ -20,10 +21,7 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         with open(os.path.join(directory, f"{case}.svg")) as f:
             svg = f.read()
         with open(os.path.join(directory, f"{case}.png"), "rb") as f:
-            png_bytes = f.read()
-            png = "data:image/png;base64,{}".format(
-                base64.b64encode(png_bytes).decode()
-            )
+            png = f.read()
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
 
 
@@ -40,6 +38,12 @@ def test_selenium_mimebundle(
     out = saver.mimebundle(fmt).popitem()[1]
     if fmt == "png":
         assert isinstance(out, bytes)
+        im = Image.open(io.BytesIO(out))
+        assert im.format == "PNG"
+
+        im_expected = Image.open(io.BytesIO(data[fmt]))
+        assert abs(im.size[0] - im_expected.size[0]) < 5
+        assert abs(im.size[1] - im_expected.size[1]) < 5
     elif fmt == "svg":
         assert out == data[fmt]
     else:
