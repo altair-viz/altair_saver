@@ -50,6 +50,6 @@ The *nodejs* backend can save charts to ``.vg.json``, ``.png``,``.svg``, or ``.p
 It requires [npm](https://www.npmjs.com/), along with the following npm packages to be
 globally installed:
 ```bash
-$ npm install -g vega vega-lite vega-cli
+$ npm install -g vega-lite vega-cli canvas
 ```
 
