@@ -1,97 +1,77 @@
+import functools
 import json
-import os
+import shutil
 import subprocess
-from typing import List, Optional
+from typing import List
 
 import altair as alt
 from altair_savechart._saver import JSONDict, Mimebundle, Saver
 
 
-class _NodeCommands:
-    """Tools for calling vega node command line."""
+class ExecutableNotFound(RuntimeError):
+    pass
 
-    def __init__(self, global_: bool = True, npm_root: Optional[str] = None):
-        if npm_root is None:
-            npm_root = self._get_npm_root(global_)
-        self._npm_root = npm_root
-        if global_:
-            self._install_cmd = "Install with npm install -g vega-lite vega-cli"
-        else:
-            self._install_cmd = "Install with npm install vega-lite vega-cli"
 
-    @staticmethod
-    def _get_npm_root(global_: bool) -> str:
-        """Return the npm root directory"""
-        cmd = ["npm", "root"]
-        if global_:
-            cmd.append("--global")
-        npm_root = subprocess.check_output(cmd, encoding="utf-8").strip()
-        if not os.path.isdir(npm_root):
-            raise RuntimeError(f"npm root not found; got {npm_root}")
-        return npm_root
+@functools.lru_cache(2)
+def npm_bin(global_: bool) -> str:
+    """Locate the npm binary directory."""
+    npm = shutil.which("npm")
+    if not npm:
+        raise ExecutableNotFound("npm")
+    cmd = [npm, "bin"]
+    if global_:
+        cmd.append("--global")
+    return subprocess.check_output(cmd).decode().strip()
 
-    def vl2vg(self, spec: JSONDict) -> JSONDict:
-        vl2vg = os.path.join(self._npm_root, "vega-lite", "bin", "vl2vg")
-        if not os.path.exists(vl2vg):
-            raise RuntimeError(
-                f"Cannot find vl2vg command: tried {vl2vg}\n{self._install_cmd}"
-            )
-        vl_json = json.dumps(spec).encode()
-        vg_json = subprocess.check_output([vl2vg], input=vl_json)
-        return json.loads(vg_json)
 
-    def vg2png(self, spec: JSONDict) -> bytes:
-        vg2png = os.path.join(self._npm_root, "vega-cli", "bin", "vg2png")
-        if not os.path.exists(vg2png):
-            raise RuntimeError(
-                f"Cannot find vg2png command: tried {vg2png}\n{self._install_cmd}"
-            )
-        vg_json = json.dumps(spec).encode()
-        return subprocess.check_output([vg2png], input=vg_json)
+@functools.lru_cache(16)
+def exec_path(name: str) -> str:
+    for path in [None, npm_bin(global_=True), npm_bin(global_=False)]:
+        exc = shutil.which(name, path=path)
+        if exc:
+            return exc
+    raise ExecutableNotFound(name)
 
-    def vg2pdf(self, spec: JSONDict) -> bytes:
-        vg2pdf = os.path.join(self._npm_root, "vega-cli", "bin", "vg2pdf")
-        if not os.path.exists(vg2pdf):
-            raise RuntimeError(
-                f"Cannot find vg2pdf command: tried {vg2pdf}\n{self._install_cmd}"
-            )
-        vg_json = json.dumps(spec).encode()
-        return subprocess.check_output([vg2pdf], input=vg_json)
 
-    def vg2svg(self, spec: JSONDict) -> str:
-        vg2svg = os.path.join(self._npm_root, "vega-cli", "bin", "vg2svg")
-        if not os.path.exists(vg2svg):
-            raise RuntimeError(
-                f"Cannot find vg2svg command: tried {vg2svg}\n{self._install_cmd}"
-            )
-        vg_json = json.dumps(spec).encode()
-        return subprocess.check_output([vg2svg], input=vg_json).decode()
+def vl2vg(spec: JSONDict) -> JSONDict:
+    """Compile a Vega-Lite spec into a Vega spec."""
+    vl2vg = exec_path("vl2vg")
+    vl_json = json.dumps(spec).encode()
+    vg_json = subprocess.check_output([vl2vg], input=vl_json)
+    return json.loads(vg_json)
 
-    def vl2png(self, spec: JSONDict) -> bytes:
-        vg_spec = self.vl2vg(spec)
-        return self.vg2png(vg_spec)
 
-    def vl2pdf(self, spec: JSONDict) -> bytes:
-        vg_spec = self.vl2vg(spec)
-        return self.vg2pdf(vg_spec)
+def vg2png(spec: JSONDict) -> bytes:
+    """Generate a PNG image from a Vega spec."""
+    vg2png = exec_path("vg2png")
+    vg_json = json.dumps(spec).encode()
+    return subprocess.check_output([vg2png], input=vg_json)
 
-    def vl2svg(self, spec: JSONDict) -> str:
-        vg_spec = self.vl2vg(spec)
-        return self.vg2svg(vg_spec)
+
+def vg2pdf(spec: JSONDict) -> bytes:
+    """Generate a PDF image from a Vega spec."""
+    vg2pdf = exec_path("vg2pdf")
+    vg_json = json.dumps(spec).encode()
+    return subprocess.check_output([vg2pdf], input=vg_json)
+
+
+def vg2svg(spec: JSONDict) -> str:
+    """Generate an SVG image from a Vega spec."""
+    vg2svg = exec_path("vg2svg")
+    vg_json = json.dumps(spec).encode()
+    return subprocess.check_output([vg2svg], input=vg_json).decode()
 
 
 class NodeSaver(Saver):
 
     valid_formats: List[str] = ["pdf", "png", "svg", "vega"]
 
-    def __init__(self, spec: JSONDict, mode: str = "vega-lite", global_: bool = True):
-        self._node = _NodeCommands(global_=global_)
-        super().__init__(spec=spec, mode=mode)
-
     @classmethod
     def enabled(cls) -> bool:
-        # TODO: implement
-        raise NotImplementedError()
+        try:
+            return exec_path('vl2vg') and exec_path('vg2png')
+        except ExecutableNotFound:
+            return False
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         """Return a mimebundle with a single mimetype."""
@@ -100,7 +80,7 @@ class NodeSaver(Saver):
 
         spec = self._spec
         if self._mode == "vega-lite":
-            spec = self._node.vl2vg(spec)
+            spec = vl2vg(spec)
 
         if fmt == "vega":
             return {
@@ -109,10 +89,10 @@ class NodeSaver(Saver):
                 ): spec
             }
         elif fmt == "png":
-            return {"image/png": self._node.vg2png(spec)}
+            return {"image/png": vg2png(spec)}
         elif fmt == "svg":
-            return {"image/svg+xml": self._node.vg2svg(spec)}
+            return {"image/svg+xml": vg2svg(spec)}
         elif fmt == "pdf":
-            return {"application/pdf": self._node.vg2pdf(spec)}
+            return {"application/pdf": vg2pdf(spec)}
         else:
             raise ValueError(f"Unrecognized format: {fmt}")
