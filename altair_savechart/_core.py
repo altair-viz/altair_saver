@@ -5,8 +5,9 @@ import altair as alt
 from altair_savechart._basic import BasicSaver
 from altair_savechart._html import HTMLSaver
 from altair_savechart._node import NodeSaver
-from altair_savechart._saver import Saver, JSONDict, _extract_format
+from altair_savechart._saver import Saver
 from altair_savechart._selenium import SeleniumSaver
+from altair_savechart._utils import JSONDict, _extract_format
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 

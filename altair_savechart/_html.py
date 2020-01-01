@@ -2,7 +2,8 @@
 import json
 from typing import Dict, List, Optional
 import altair as alt
-from altair_savechart._saver import JSONDict, Mimebundle, Saver
+from altair_savechart._saver import Saver
+from altair_savechart._utils import JSONDict, Mimebundle
 from altair_viewer import get_bundled_script
 
 HTML_TEMPLATE = """

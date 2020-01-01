@@ -6,7 +6,8 @@ import warnings
 
 import altair as alt
 from altair_savechart import _versions
-from altair_savechart._saver import JSONDict, Mimebundle, MimeType, Saver
+from altair_savechart._saver import Saver
+from altair_savechart._utils import JSONDict, Mimebundle, MimeType
 
 from altair_data_server import Provider, Resource
 from altair_viewer import get_bundled_script

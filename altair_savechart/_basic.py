@@ -1,7 +1,8 @@
 """A basic vega-lite saver"""
 from typing import List
 import altair as alt
-from altair_savechart._saver import Saver, Mimebundle
+from altair_savechart._saver import Saver
+from altair_savechart._utils import Mimebundle
 
 
 class BasicSaver(Saver):
