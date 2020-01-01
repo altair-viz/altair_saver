@@ -8,6 +8,7 @@ This packge provides extensions to [Altair](http://altair-viz.github.io) for sav
 to a variety of output types. Supported output formats are:
 
 - ``.json``/``.vl.json``: Vega-Lite JSON specification
+- ``.html``: HTML output
 - ``.vg.json``: Vega JSON specification
 - ``.png``: PNG image
 - ``.svg``: SVG image
@@ -27,7 +28,6 @@ save(chart, "chart.png")                  # PNG Image
 save(chart, "chart.svg")                  # SVG Image
 save(chart, "chart.pdf")                  # PDF Image
 ```
-It has the following call signature:
 
 ## Installation
 ``altair_savechart`` can be installed with:
