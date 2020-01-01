@@ -5,12 +5,14 @@ import altair as alt
 import pandas as pd
 import pytest
 
-from altair_savechart import save
-from altair_savechart._basic import BasicSaver
-from altair_savechart._html import HTMLSaver
-from altair_savechart._node import NodeSaver
-from altair_savechart._saver import Saver
-from altair_savechart._selenium import SeleniumSaver
+from altair_savechart import (
+    save,
+    BasicSaver,
+    HTMLSaver,
+    NodeSaver,
+    Saver,
+    SeleniumSaver,
+)
 from altair_savechart._utils import JSONDict
 
 FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite"]

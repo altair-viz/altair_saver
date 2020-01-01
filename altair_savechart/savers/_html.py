@@ -2,7 +2,7 @@
 import json
 from typing import Dict, List, Optional
 import altair as alt
-from altair_savechart._saver import Saver
+from altair_savechart.savers import Saver
 from altair_savechart._utils import JSONDict, Mimebundle
 from altair_viewer import get_bundled_script
 

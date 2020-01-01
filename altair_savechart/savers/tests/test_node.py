@@ -5,11 +5,11 @@ from typing import Any, Dict, IO, Iterator, Tuple
 
 import pytest
 
-from altair_savechart._selenium import SeleniumSaver
+from altair_savechart.savers import NodeSaver
 
 
-def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
-    directory = os.path.join(os.path.dirname(__file__), "test_cases")
+def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
+    directory = os.path.join(os.path.dirname(__file__), "testcases")
     cases = set(f.split(".")[0] for f in os.listdir(directory))
     f: IO
     for case in sorted(cases):
@@ -27,24 +27,23 @@ def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
 
 
-@pytest.mark.parametrize("name,data", get_test_cases())
+@pytest.mark.parametrize("name,data", get_testcases())
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
-@pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
-@pytest.mark.parametrize("offline", [True, False])
-def test_selenium_mimebundle(
-    name: str, data: Any, mode: str, fmt: str, offline: bool
-) -> None:
+@pytest.mark.parametrize("fmt", NodeSaver.valid_formats)
+def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
     if mode == "vega" and fmt in ["vega", "vega-lite"]:
         return
-    saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
+    saver = NodeSaver(data[mode], mode=mode)
     out = saver.mimebundle(fmt).popitem()[1]
-    if fmt == "png":
+    if fmt in ["png", "pdf"]:
+        # TODO: can we validate binary output robustly?
         assert isinstance(out, bytes)
     elif fmt == "svg":
-        assert out == data[fmt]
+        assert isinstance(out, str)
+        assert out.startswith("<svg")
     else:
         assert out == data[fmt]
 
 
 def test_enabled():
-    assert SeleniumSaver.enabled()
+    assert NodeSaver.enabled()

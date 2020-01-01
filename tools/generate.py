@@ -3,18 +3,16 @@ import os
 import sys
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from altair_savechart._selenium import SeleniumSaver  # noqa: E402
+from altair_savechart import save  # noqa: E402
 
-test_cases = os.path.join(
-    os.path.dirname(__file__), "..", "altair_savechart", "tests", "test_cases"
+testcases = os.path.join(
+    os.path.dirname(__file__), "..", "altair_savechart", "savers", "tests", "testcases"
 )
-cases = sorted(set(f.split(".")[0] for f in os.listdir(test_cases)))
+cases = sorted(set(f.split(".")[0] for f in os.listdir(testcases)))
 
 for name in sorted(cases):
-    with open(os.path.join(test_cases, f"{name}.vl.json")) as f:
+    with open(os.path.join(testcases, f"{name}.vl.json")) as f:
         spec = json.load(f)
 
-    saver = SeleniumSaver(spec)
-    saver.save(os.path.join(test_cases, f"{name}.svg"))
-    saver.save(os.path.join(test_cases, f"{name}.png"))
-    saver.save(os.path.join(test_cases, f"{name}.vg.json"), "vega")
+    for extension in ["svg", "png", "vg.json"]:
+        save(spec, os.path.join(testcases, f"{name}.{extension}"))

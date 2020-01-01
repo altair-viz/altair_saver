@@ -3,10 +3,11 @@ import os
 from typing import Any, Dict, Iterator, Tuple
 
 from altair_data_server import Provider
-from altair_savechart._html import HTMLSaver
 import pytest
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
+
+from altair_savechart.savers import HTMLSaver
 
 
 @pytest.fixture(scope="module")
@@ -27,8 +28,8 @@ def driver() -> Iterator[WebDriver]:
     driver.quit()
 
 
-def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
-    directory = os.path.join(os.path.dirname(__file__), "test_cases")
+def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
+    directory = os.path.join(os.path.dirname(__file__), "testcases")
     cases = set(f.split(".")[0] for f in os.listdir(directory))
     for case in sorted(cases):
         with open(os.path.join(directory, f"{case}.vl.json")) as f:
@@ -37,7 +38,7 @@ def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 
 
 @pytest.mark.parametrize("inline", [True, False])
-@pytest.mark.parametrize("case, spec", get_test_cases())
+@pytest.mark.parametrize("case, spec", get_testcases())
 def test_html_saver(case: str, spec: Dict[str, Any], inline: bool) -> None:
     saver = HTMLSaver(spec, inline=inline)
     bundle = saver.mimebundle("html")
@@ -54,7 +55,7 @@ def test_bad_format() -> None:
 
 
 @pytest.mark.parametrize("inline", [True, False])
-@pytest.mark.parametrize("case, spec", get_test_cases())
+@pytest.mark.parametrize("case, spec", get_testcases())
 def test_html_rendering(
     provider: Provider, driver: WebDriver, case: str, spec: Dict[str, Any], inline: bool
 ) -> None:
