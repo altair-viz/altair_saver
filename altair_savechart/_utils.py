@@ -30,7 +30,7 @@ def temporary_filename(**kwargs):
 
 
 @contextlib.contextmanager
-def _maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
+def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
     """Write to string or file-like object"""
     if isinstance(fp, str):
         with open(fp, mode) as f:
@@ -43,7 +43,7 @@ def _maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
         yield fp
 
 
-def _extract_format(fp: Union[IO, str]) -> str:
+def extract_format(fp: Union[IO, str]) -> str:
     """Extract the output format from a file or filename."""
     filename: Optional[str]
     if isinstance(fp, str):

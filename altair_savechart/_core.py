@@ -9,7 +9,7 @@ from altair_savechart.savers import (
     NodeSaver,
     SeleniumSaver,
 )
-from altair_savechart._utils import JSONDict, _extract_format
+from altair_savechart._utils import JSONDict, extract_format
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 
@@ -18,7 +18,7 @@ def _get_saver_for_format(fp: Union[IO, str], fmt: Optional[str]) -> Type[Saver]
     """Get an enabled Saver class that supports the specified format."""
     # TODO: allow other savers to be registered.
     if fmt is None:
-        fmt = _extract_format(fp)
+        fmt = extract_format(fp)
     savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, SeleniumSaver, NodeSaver]
     for s in savers:
         if fmt in s.valid_formats and s.enabled():

@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from altair_savechart._utils import _extract_format, _maybe_open, temporary_filename
+from altair_savechart._utils import extract_format, maybe_open, temporary_filename
 
 
 @pytest.mark.parametrize(
@@ -18,34 +18,34 @@ from altair_savechart._utils import _extract_format, _maybe_open, temporary_file
     ],
 )
 @pytest.mark.parametrize("use_filename", [True, False])
-def test_extract_format(ext: str, fmt: str, use_filename: bool) -> None:
+def testextract_format(ext: str, fmt: str, use_filename: bool) -> None:
     if use_filename:
         filename = f"chart.{ext}"
-        assert _extract_format(filename) == fmt
+        assert extract_format(filename) == fmt
     else:
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
-            assert _extract_format(fp) == fmt
+            assert extract_format(fp) == fmt
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
-def test_maybe_open_filename(mode: str) -> None:
+def testmaybe_open_filename(mode: str) -> None:
     content_raw = "testing maybe_open with filename\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
     with temporary_filename() as filename:
-        with _maybe_open(filename, mode) as f:
+        with maybe_open(filename, mode) as f:
             f.write(content)
         with open(filename, "rb" if "b" in mode else "r") as f:
             assert f.read() == content
 
 
-@pytest.mark.parametrize("mode", ["w+", "w+b"])
-def test_maybe_open_fileobj(mode: str) -> None:
+@pytest.mark.parametrize("mode", ["w", "wb"])
+def testmaybe_open_fileobj(mode: str) -> None:
     content_raw = "testing maybe_open with file object\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
-    with tempfile.NamedTemporaryFile(mode) as fp:
-        with _maybe_open(fp, mode) as f:
+    with tempfile.NamedTemporaryFile(mode + "+") as fp:
+        with maybe_open(fp, mode) as f:
             f.write(content)
         fp.seek(0)
         assert fp.read() == content

@@ -3,8 +3,8 @@ import json
 from typing import IO, Iterable, List, Optional, Union
 
 from altair_savechart._utils import (
-    _extract_format,
-    _maybe_open,
+    extract_format,
+    maybe_open,
     Mimebundle,
     JSONDict,
 )
@@ -77,19 +77,19 @@ class Saver(metaclass=abc.ABCMeta):
             fmt will be determined from the file extension.
         """
         if fmt is None:
-            fmt = _extract_format(fp)
+            fmt = extract_format(fp)
         if fmt not in self.valid_formats:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 
         content = self.mimebundle(fmt).popitem()[1]
         if isinstance(content, dict):
-            with _maybe_open(fp, "w") as f:
+            with maybe_open(fp, "w") as f:
                 json.dump(content, f, indent=2)
         elif isinstance(content, str):
-            with _maybe_open(fp, "w") as f:
+            with maybe_open(fp, "w") as f:
                 f.write(content)
         elif isinstance(content, bytes):
-            with _maybe_open(fp, "wb") as f:
+            with maybe_open(fp, "wb") as f:
                 f.write(content)
         else:
             raise ValueError(
