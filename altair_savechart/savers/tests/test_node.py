@@ -4,6 +4,7 @@ import os
 from typing import Any, Dict, IO, Iterator, Tuple
 
 from PIL import Image
+from PyPDF2 import PdfFileReader
 import pytest
 
 from altair_savechart.savers import NodeSaver
@@ -22,7 +23,9 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
             svg = f.read()
         with open(os.path.join(directory, f"{case}.png"), "rb") as f:
             png = f.read()
-        yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
+        with open(os.path.join(directory, f"{case}.pdf"), "rb") as f:
+            pdf = f.read()
+        yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png, "pdf": pdf}
 
 
 @pytest.mark.parametrize("name,data", get_testcases())
@@ -42,9 +45,14 @@ def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
         assert abs(im.size[0] - im_expected.size[0]) < 5
         assert abs(im.size[1] - im_expected.size[1]) < 5
     elif fmt == "pdf":
-        # TODO: can we validate binary output robustly?
         assert isinstance(out, bytes)
-        assert len(out) > 0
+        pdf = PdfFileReader(io.BytesIO(out))
+        box = pdf.getPage(0).mediaBox
+        pdf_expected = PdfFileReader(io.BytesIO(data[fmt]))
+        box_expected = pdf_expected.getPage(0).mediaBox
+
+        assert abs(box.getWidth() - box_expected.getWidth()) < 5
+        assert abs(box.getHeight() - box_expected.getHeight()) < 5
     elif fmt == "svg":
         assert isinstance(out, str)
         assert out.startswith("<svg")
