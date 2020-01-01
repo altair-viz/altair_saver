@@ -88,6 +88,11 @@ class NodeSaver(Saver):
         self._node = _NodeCommands(global_=global_)
         super().__init__(spec=spec, mode=mode)
 
+    @classmethod
+    def enabled(cls) -> bool:
+        # TODO: implement
+        raise NotImplementedError()
+
     def _mimebundle(self, fmt: str) -> Mimebundle:
         """Return a mimebundle with a single mimetype."""
         if self._mode not in ["vega", "vega-lite"]:

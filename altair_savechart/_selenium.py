@@ -166,6 +166,11 @@ class SeleniumSaver(Saver):
         super().__init__(spec=spec, mode=mode)
 
     @classmethod
+    def enabled(cls) -> bool:
+        # TODO: implement
+        raise NotImplementedError()
+
+    @classmethod
     def _serve(cls, content: str, js_resources: Dict[str, str]) -> str:
         if cls._provider is None:
             cls._provider = Provider()

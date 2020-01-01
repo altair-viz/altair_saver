@@ -50,6 +50,11 @@ class Saver(metaclass=abc.ABCMeta):
         """Return a mimebundle with a single mimetype."""
         pass
 
+    @classmethod
+    def enabled(cls) -> bool:
+        """Return true if this saver is enabled on the current system."""
+        return True
+
     @staticmethod
     def _extract_format(fp: Union[IO, str]) -> str:
         """Extract the output format from a file or filename."""
