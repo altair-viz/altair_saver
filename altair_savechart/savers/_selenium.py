@@ -196,6 +196,9 @@ class SeleniumSaver(Saver):
             cls._provider = None
 
     def _extract(self, fmt: str) -> MimeType:
+        if fmt == "vega" and self._mode == "vega":
+            return self._spec
+
         driver = self._registry.get(self._webdriver, self._driver_timeout)
 
         if self._offline:
@@ -241,12 +244,7 @@ class SeleniumSaver(Saver):
         )
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
-        out: MimeType = {}
-
-        if fmt == self._mode:
-            out = self._spec
-        else:
-            out = self._extract(fmt)
+        out = self._extract(fmt)
 
         if fmt == "png":
             assert isinstance(out, str)
@@ -260,13 +258,6 @@ class SeleniumSaver(Saver):
             return {
                 "application/vnd.vega.v{}+json".format(
                     alt.VEGA_VERSION.split(".")[0]
-                ): out
-            }
-        elif fmt == "vega-lite":
-            assert isinstance(out, dict)
-            return {
-                "application/vnd.vegalite.v{}+json".format(
-                    alt.VEGALITE_VERSION.split(".")[0]
                 ): out
             }
         else:

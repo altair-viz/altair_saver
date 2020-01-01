@@ -32,9 +32,11 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
 @pytest.mark.parametrize("fmt", NodeSaver.valid_formats)
 def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
-    if mode == "vega" and fmt in ["vega", "vega-lite"]:
-        return
     saver = NodeSaver(data[mode], mode=mode)
+    if mode == "vega" and fmt == "vega-lite":
+        with pytest.raises(ValueError):
+            out = saver.mimebundle(fmt).popitem()[1]
+        return
     out = saver.mimebundle(fmt).popitem()[1]
     if fmt == "png":
         assert isinstance(out, bytes)

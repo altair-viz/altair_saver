@@ -32,9 +32,11 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 def test_selenium_mimebundle(
     name: str, data: Any, mode: str, fmt: str, offline: bool
 ) -> None:
-    if mode == "vega" and fmt in ["vega", "vega-lite"]:
-        return
     saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
+    if mode == "vega" and fmt == "vega-lite":
+        with pytest.raises(ValueError):
+            out = saver.mimebundle(fmt).popitem()[1]
+        return
     out = saver.mimebundle(fmt).popitem()[1]
     if fmt == "png":
         assert isinstance(out, bytes)
