@@ -9,15 +9,11 @@ from altair_savechart import _versions
 from altair_savechart._saver import JSONDict, Mimebundle, MimeType, Saver
 
 from altair_data_server import Provider, Resource
+from altair_viewer import get_bundled_script
 
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
-
-try:
-    from altair_viewer import get_bundled_script
-except:  # noqa: E722
-    get_bundled_script = None
 
 CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
@@ -153,7 +149,7 @@ class SeleniumSaver(Saver):
         driver_timeout: int = 20,
         scale_factor: float = 1,
         webdriver: str = "chrome",
-        offline: Optional[bool] = None,
+        offline: bool = True,
     ) -> None:
         self._vega_version = vega_version
         self._vegalite_version = vegalite_version
@@ -161,8 +157,6 @@ class SeleniumSaver(Saver):
         self._driver_timeout = driver_timeout
         self._scale_factor = scale_factor
         self._webdriver = webdriver
-        if offline is None:
-            offline = get_bundled_script is not None
         self._offline = offline
         super().__init__(spec=spec, mode=mode)
 

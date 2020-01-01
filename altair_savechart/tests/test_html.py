@@ -36,9 +36,10 @@ def get_test_cases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         yield case, spec
 
 
+@pytest.mark.parametrize("inline", [True, False])
 @pytest.mark.parametrize("case, spec", get_test_cases())
-def test_html_saver(case: str, spec: Dict[str, Any]) -> None:
-    saver = HTMLSaver(spec)
+def test_html_saver(case: str, spec: Dict[str, Any], inline: bool) -> None:
+    saver = HTMLSaver(spec, inline=inline)
     bundle = saver.mimebundle("html")
     html = bundle.popitem()[1]
     assert isinstance(html, str)
@@ -52,11 +53,12 @@ def test_bad_format() -> None:
         saver.mimebundle("vega")
 
 
+@pytest.mark.parametrize("inline", [True, False])
 @pytest.mark.parametrize("case, spec", get_test_cases())
 def test_html_rendering(
-    provider: Provider, driver: WebDriver, case: str, spec: Dict[str, Any]
+    provider: Provider, driver: WebDriver, case: str, spec: Dict[str, Any], inline: bool
 ) -> None:
-    saver = HTMLSaver(spec)
+    saver = HTMLSaver(spec, inline=inline)
     bundle = saver.mimebundle("html")
     html = bundle.popitem()[1]
     assert isinstance(html, str)
