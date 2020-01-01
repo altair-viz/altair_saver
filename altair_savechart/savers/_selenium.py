@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Union
 import warnings
 
 import altair as alt
-from altair_savechart import _versions
 from altair_savechart.savers import Saver
 from altair_savechart._utils import JSONDict, Mimebundle, MimeType
 
@@ -144,9 +143,9 @@ class SeleniumSaver(Saver):
         self,
         spec: JSONDict,
         mode: str = "vega-lite",
-        vega_version: str = _versions.VEGA_VERSION,
-        vegalite_version: str = _versions.VEGALITE_VERSION,
-        vegaembed_version: str = _versions.VEGAEMBED_VERSION,
+        vega_version: str = alt.VEGA_VERSION,
+        vegalite_version: str = alt.VEGALITE_VERSION,
+        vegaembed_version: str = alt.VEGAEMBED_VERSION,
         driver_timeout: int = 20,
         scale_factor: float = 1,
         webdriver: str = "chrome",
