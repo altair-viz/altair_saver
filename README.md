@@ -34,8 +34,10 @@ It has the following call signature:
 ```
 $ pip install git+https://github.com/jakevdp/altair_savechart.git
 ```
-To enable all the above formats requires several dependencies beyond the Python stack
-to be properly configured.
+Saving as ``vg.json`` and as ``html`` requires no additional setup.
+
+To save charts in other formats requires several dependencies beyond the Python stack
+to be properly configured. 
 
 ### Selenium
 The *selenium* backend can save charts to ``.vg.json``, ``.png``, or ``.svg``.
