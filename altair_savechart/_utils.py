@@ -11,7 +11,7 @@ JSONDict = Dict[str, JSON]
 
 
 @contextlib.contextmanager
-def temporary_filename(**kwargs):
+def temporary_filename(**kwargs: Any) -> Iterator[str]:
     """Create and clean-up a temporary file
 
     Arguments are the same as those passed to tempfile.mkstemp

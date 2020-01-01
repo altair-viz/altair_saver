@@ -62,5 +62,5 @@ def test_selenium_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
         assert out == data[fmt]
 
 
-def test_enabled():
+def test_enabled() -> None:
     assert NodeSaver.enabled()

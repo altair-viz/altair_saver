@@ -52,5 +52,5 @@ def test_selenium_mimebundle(
         assert out == data[fmt]
 
 
-def test_enabled():
+def test_enabled() -> None:
     assert SeleniumSaver.enabled()
