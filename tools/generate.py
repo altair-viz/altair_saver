@@ -14,5 +14,5 @@ for name in sorted(cases):
     with open(os.path.join(testcases, f"{name}.vl.json")) as f:
         spec = json.load(f)
 
-    for extension in ["svg", "png", "vg.json"]:
+    for extension in ["svg", "png", "pdf", "vg.json"]:
         save(spec, os.path.join(testcases, f"{name}.{extension}"))
