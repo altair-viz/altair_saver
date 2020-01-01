@@ -1,11 +1,32 @@
 import contextlib
 import io
+import os
+import tempfile
 from typing import Any, Dict, IO, Iterator, List, Optional, Union
 
 MimeType = Union[str, bytes, dict]
 Mimebundle = Dict[str, MimeType]
 JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONDict = Dict[str, JSON]
+
+
+@contextlib.contextmanager
+def temporary_filename(**kwargs):
+    """Create and clean-up a temporary file
+
+    Arguments are the same as those passed to tempfile.mkstemp
+
+    We could use tempfile.NamedTemporaryFile here, but that causes issues on
+    windows (see https://bugs.python.org/issue14243).
+    """
+    filedescriptor, filename = tempfile.mkstemp(**kwargs)
+    os.close(filedescriptor)
+
+    try:
+        yield filename
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
 
 
 @contextlib.contextmanager
