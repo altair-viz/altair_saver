@@ -63,6 +63,12 @@ def test_html_rendering(
     html = bundle.popitem()[1]
     assert isinstance(html, str)
 
+    cdn_url = "https://cdn.jsdelivr.net"
+    if inline:
+        assert cdn_url not in html
+    else:
+        assert cdn_url in html
+
     resource = provider.create(content=html, extension="html")
     driver.set_window_size(800, 600)
     driver.get(resource.url)

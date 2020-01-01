@@ -74,3 +74,16 @@ def test_save_chart_method(
             save(spec, fp, fmt=fmt, method=method)
     else:
         save(spec, fp, fmt=fmt, method=method)
+
+
+@pytest.mark.parametrize("inline", [True, False])
+def test_html_inline(spec: JSONDict, inline: bool) -> None:
+    fp = io.StringIO()
+    save(spec, fp, fmt="html", inline=inline)
+    html = fp.getvalue()
+
+    cdn_url = "https://cdn.jsdelivr.net"
+    if inline:
+        assert cdn_url not in html
+    else:
+        assert cdn_url in html
