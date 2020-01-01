@@ -1,14 +1,26 @@
-from typing import Any, Dict, IO, Optional, Union
+from typing import Any, Dict, IO, List, Optional, Type, Union
 
 import altair as alt
 
 from altair_savechart._basic import BasicSaver
 from altair_savechart._html import HTMLSaver
 from altair_savechart._node import NodeSaver
-from altair_savechart._saver import JSONDict
+from altair_savechart._saver import Saver, JSONDict, _extract_format
 from altair_savechart._selenium import SeleniumSaver
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
+
+
+def _get_saver_for_format(fp: Union[IO, str], fmt: Optional[str]) -> Type[Saver]:
+    """Get an enabled Saver class that supports the specified format."""
+    # TODO: allow other savers to be registered.
+    if fmt is None:
+        fmt = _extract_format(fp)
+    savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, NodeSaver, SeleniumSaver]
+    for s in savers:
+        if fmt in s.valid_formats and s.enabled():
+            return s
+    raise ValueError(f"Unsupported format: {fmt!r}")
 
 
 def save(
@@ -16,7 +28,7 @@ def save(
     fp: Union[IO, str],
     fmt: Optional[str] = None,
     mode: str = "vega_lite",
-    method: Union[str, type] = "selenium",
+    method: Optional[Union[str, type]] = None,
     **kwargs: Any,
 ) -> None:
     """Save an Altair, Vega, or Vega-Lite chart
@@ -38,17 +50,14 @@ def save(
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
-    Saver: type
-    if fmt == "vega-lite":
-        Saver = BasicSaver
-    elif fmt == "html":
-        Saver = HTMLSaver
+    if method is None:
+        Saver = _get_saver_for_format(fp, fmt)
     elif isinstance(method, type):
         Saver = method
     elif isinstance(method, str) and method in METHOD_DICT:
         Saver = METHOD_DICT[method]
     else:
-        raise ValueError(f"unrecognized method: {method}")
+        raise ValueError(f"Unrecognized method: {method}")
 
     spec: JSONDict = {}
     if isinstance(chart, dict):

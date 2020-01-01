@@ -25,6 +25,23 @@ def _maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
         yield fp
 
 
+def _extract_format(fp: Union[IO, str]) -> str:
+    """Extract the output format from a file or filename."""
+    filename: Optional[str]
+    if isinstance(fp, str):
+        filename = fp
+    else:
+        filename = getattr(fp, "name", None)
+    if filename is None:
+        raise ValueError(f"Cannot infer format from {fp}")
+    if filename.endswith(".vg.json"):
+        return "vega"
+    elif filename.endswith(".json"):
+        return "vega-lite"
+    else:
+        return filename.split(".")[-1]
+
+
 class Saver(metaclass=abc.ABCMeta):
     """
     Base class for saving Altair charts.
@@ -54,23 +71,6 @@ class Saver(metaclass=abc.ABCMeta):
     def enabled(cls) -> bool:
         """Return true if this saver is enabled on the current system."""
         return True
-
-    @staticmethod
-    def _extract_format(fp: Union[IO, str]) -> str:
-        """Extract the output format from a file or filename."""
-        filename: Optional[str]
-        if isinstance(fp, str):
-            filename = fp
-        else:
-            filename = getattr(fp, "name", None)
-        if filename is None:
-            raise ValueError(f"Cannot infer format from {fp}")
-        if filename.endswith(".vg.json"):
-            return "vega"
-        elif filename.endswith(".json"):
-            return "vega-lite"
-        else:
-            return filename.split(".")[-1]
 
     def mimebundle(self, fmts: Union[str, Iterable[str]]) -> Mimebundle:
         """Return a mimebundle representation of the chart.
@@ -109,7 +109,7 @@ class Saver(metaclass=abc.ABCMeta):
             fmt will be determined from the file extension.
         """
         if fmt is None:
-            fmt = self._extract_format(fp)
+            fmt = _extract_format(fp)
         if fmt not in self.valid_formats:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 

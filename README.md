@@ -19,11 +19,13 @@ Given an Altair chart named ``chart``, you can use it as follows:
 ```python
 from altair_savechart import save
 
-save(chart, "chart.json")    # Vega-Lite JSON specification
-save(chart, "chart.vg.json") # Vega JSON specification
-save(chart, "chart.png")     # PNG Image
-save(chart, "chart.svg")     # SVG Image
-save(chart, "chart.pdf")     # PDF Image
+save(chart, "chart.json")                 # Vega-Lite JSON specification
+save(chart, "chart.vg.json")              # Vega JSON specification
+save(chart, "chart.html")                 # HTML document
+save(chart, "chart.html", inline=True)    # HTML document with all JS code inline
+save(chart, "chart.png")                  # PNG Image
+save(chart, "chart.svg")                  # SVG Image
+save(chart, "chart.pdf")                  # PDF Image
 ```
 It has the following call signature:
 

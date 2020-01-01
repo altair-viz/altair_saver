@@ -1,12 +1,18 @@
 import io
-from typing import Any, Dict, IO, Union
+from typing import IO, List, Union, Type
 
 import altair as alt
 import pandas as pd
 import pytest
 
 from altair_savechart import save
-from altair_savechart._saver import JSONDict
+from altair_savechart._basic import BasicSaver
+from altair_savechart._html import HTMLSaver
+from altair_savechart._node import NodeSaver
+from altair_savechart._saver import JSONDict, Saver
+from altair_savechart._selenium import SeleniumSaver
+
+FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite"]
 
 
 @pytest.fixture
@@ -16,42 +22,55 @@ def chart() -> alt.Chart:
 
 
 @pytest.fixture
-def spec(chart: alt.Chart) -> Dict[str, Any]:
+def spec(chart: alt.Chart) -> JSONDict:
     return chart.to_dict()
 
 
-@pytest.mark.parametrize("method", ["node", "selenium"])
-@pytest.mark.parametrize("fmt", ["html", "pdf", "png", "svg", "vega", "vega-lite"])
-def test_save_chart(
-    chart: Union[alt.TopLevelMixin, JSONDict], fmt: str, method: str
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_save_chart(chart: alt.TopLevelMixin, fmt: str) -> None:
+    fp: IO
+    if fmt in ["png", "pdf"]:
+        fp = io.BytesIO()
+    else:
+        fp = io.StringIO()
+
+    save(chart, fp, fmt=fmt)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_save_spec(spec: JSONDict, fmt: str) -> None:
+    fp: IO
+    if fmt in ["png", "pdf"]:
+        fp = io.BytesIO()
+    else:
+        fp = io.StringIO()
+
+    save(spec, fp, fmt=fmt)
+
+
+@pytest.mark.parametrize("method", ["node", "selenium", BasicSaver, HTMLSaver])
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_save_chart_method(
+    spec: JSONDict, fmt: str, method: Union[str, Type[Saver]]
 ) -> None:
-    if method == "selenium" and fmt == "pdf":
-        return
-
     fp: IO
     if fmt in ["png", "pdf"]:
         fp = io.BytesIO()
     else:
         fp = io.StringIO()
 
-    save(chart, fp, fmt=fmt, method=method)
-
-
-@pytest.mark.parametrize("method", ["node", "selenium"])
-@pytest.mark.parametrize("fmt", ["html", "pdf", "png", "svg", "vega", "vega-lite"])
-def test_save_spec(spec: Dict[str, Any], fmt: str, method: str) -> None:
-    if method == "selenium" and fmt == "pdf":
-        return
-
-    fp: IO
-    if fmt in ["png", "pdf"]:
-        fp = io.BytesIO()
+    valid_formats: List[str] = []
+    if method == "node":
+        valid_formats = NodeSaver.valid_formats
+    elif method == "selenium":
+        valid_formats = SeleniumSaver.valid_formats
+    elif isinstance(method, type):
+        valid_formats = method.valid_formats
     else:
-        fp = io.StringIO()
+        raise ValueError(f"unrecognized method: {method}")
 
-    save(spec, fp, fmt=fmt, method=method)
-
-
-def test_save_pdf(spec: Dict[str, Any]) -> None:
-    fp = io.BytesIO()
-    save(spec, fp, fmt="pdf", method="node")
+    if fmt not in valid_formats:
+        with pytest.raises(ValueError):
+            save(spec, fp, fmt=fmt, method=method)
+    else:
+        save(spec, fp, fmt=fmt, method=method)
