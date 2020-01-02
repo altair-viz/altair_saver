@@ -1,4 +1,4 @@
-# Altair SaveChart
+# Altair Saver
 
 [![github actions](https://github.com/jakevdp/altair_saver/workflows/build/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Abuild)
 [![github actions](https://github.com/jakevdp/altair_saver/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Alint)
