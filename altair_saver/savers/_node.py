@@ -5,8 +5,8 @@ import subprocess
 from typing import List
 
 import altair as alt
-from altair_savechart.savers import Saver
-from altair_savechart._utils import JSONDict, Mimebundle
+from altair_saver.savers import Saver
+from altair_saver._utils import JSONDict, Mimebundle
 
 
 class ExecutableNotFound(RuntimeError):

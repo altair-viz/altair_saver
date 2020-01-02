@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterator, Tuple
 
 import pytest
 
-from altair_savechart.savers import BasicSaver
+from altair_saver.savers import BasicSaver
 
 
 def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:

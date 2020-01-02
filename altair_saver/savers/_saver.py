@@ -2,7 +2,7 @@ import abc
 import json
 from typing import IO, Iterable, List, Optional, Union
 
-from altair_savechart._utils import (
+from altair_saver._utils import (
     extract_format,
     maybe_open,
     Mimebundle,

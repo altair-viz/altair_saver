@@ -54,15 +54,15 @@ def find_packages(top=HERE):
 
 
 setup(
-    name="altair_savechart",
-    version=version("altair_savechart/__init__.py"),
+    name="altair_saver",
+    version=version("altair_saver/__init__.py"),
     description="A python engine for evaluating Altair transforms.",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     author="Jake VanderPlas",
     author_email="jakevdp@gmail.com",
-    url="http://github.com/jakevdp/altair_savechart/",
-    download_url="http://github.com/jakevdp/altair_savechart/",
+    url="http://github.com/jakevdp/altair_saver/",
+    download_url="http://github.com/jakevdp/altair_saver/",
     license="MIT",
     packages=find_packages(),
     include_package_data=True,

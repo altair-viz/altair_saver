@@ -1,7 +1,7 @@
 # Altair SaveChart
 
-[![github actions](https://github.com/jakevdp/altair_savechart/workflows/build/badge.svg)](https://github.com/jakevdp/altair_savechart/actions?query=workflow%3Abuild)
-[![github actions](https://github.com/jakevdp/altair_savechart/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_savechart/actions?query=workflow%3Alint)
+[![github actions](https://github.com/jakevdp/altair_saver/workflows/build/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Abuild)
+[![github actions](https://github.com/jakevdp/altair_saver/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Alint)
 [![code style black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This packge provides extensions to [Altair](http://altair-viz.github.io) for saving charts
@@ -15,10 +15,10 @@ to a variety of output types. Supported output formats are:
 - ``.pdf``: PDF image
 
 ## Usage
-The ``altair_savechart`` library has a single public function, ``altair_savechart.save()``.
+The ``altair_saver`` library has a single public function, ``altair_saver.save()``.
 Given an Altair chart named ``chart``, you can use it as follows:
 ```python
-from altair_savechart import save
+from altair_saver import save
 
 save(chart, "chart.json")                 # Vega-Lite JSON specification
 save(chart, "chart.vg.json")              # Vega JSON specification
@@ -30,9 +30,9 @@ save(chart, "chart.pdf")                  # PDF Image
 ```
 
 ## Installation
-``altair_savechart`` can be installed with:
+``altair_saver`` can be installed with:
 ```
-$ pip install git+https://github.com/jakevdp/altair_savechart.git
+$ pip install git+https://github.com/jakevdp/altair_saver.git
 ```
 Saving as ``vg.json`` and as ``html`` requires no additional setup.
 

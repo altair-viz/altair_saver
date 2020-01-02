@@ -7,7 +7,7 @@ import pytest
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from altair_savechart.savers import HTMLSaver
+from altair_saver.savers import HTMLSaver
 
 
 @pytest.fixture(scope="module")

@@ -35,5 +35,5 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --doctest-modules altair_savechart
+        pytest --doctest-modules altair_saver
       

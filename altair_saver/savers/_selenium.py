@@ -5,8 +5,8 @@ from typing import Dict, List, Optional, Union
 import warnings
 
 import altair as alt
-from altair_savechart.savers import Saver
-from altair_savechart._utils import JSONDict, Mimebundle, MimeType
+from altair_saver.savers import Saver
+from altair_saver._utils import JSONDict, Mimebundle, MimeType
 
 from altair_data_server import Provider, Resource
 from altair_viewer import get_bundled_script

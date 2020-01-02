@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from altair_savechart._utils import extract_format, maybe_open, temporary_filename
+from altair_saver._utils import extract_format, maybe_open, temporary_filename
 
 
 @pytest.mark.parametrize(

@@ -2,14 +2,14 @@ from typing import Any, Dict, IO, List, Optional, Type, Union
 
 import altair as alt
 
-from altair_savechart.savers import (
+from altair_saver.savers import (
     Saver,
     BasicSaver,
     HTMLSaver,
     NodeSaver,
     SeleniumSaver,
 )
-from altair_savechart._utils import JSONDict, extract_format
+from altair_saver._utils import JSONDict, extract_format
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 
