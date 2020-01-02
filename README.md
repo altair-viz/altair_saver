@@ -36,8 +36,8 @@ $ pip install git+https://github.com/jakevdp/altair_saver.git
 ```
 Saving as ``vg.json`` and as ``html`` requires no additional setup.
 
-To save charts in other formats requires several dependencies beyond the Python stack
-to be properly configured. 
+To save charts in other formats requires additional setup: you can use either a Selenium-based
+stack or a NodeJS-based stack.
 
 ### Selenium
 The *selenium* backend can save charts to ``.vg.json``, ``.png``, or ``.svg``.
