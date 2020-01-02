@@ -52,5 +52,17 @@ def test_selenium_mimebundle(
         assert out == data[fmt]
 
 
+@pytest.mark.parametrize("name,data", get_testcases())
+def test_stop_and_start(name, data) -> None:
+    saver = SeleniumSaver(data["vega-lite"])
+    bundle1 = saver.mimebundle("png")
+
+    saver._stop_serving()
+    assert saver._provider is None
+
+    bundle2 = saver.mimebundle("png")
+    assert bundle1 == bundle2
+
+
 def test_enabled() -> None:
     assert SeleniumSaver.enabled()
