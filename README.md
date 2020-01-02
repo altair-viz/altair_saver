@@ -34,7 +34,7 @@ save(chart, "chart.pdf")                  # PDF Image
 ```
 $ pip install git+https://github.com/jakevdp/altair_saver.git
 ```
-Saving as ``vg.json`` and as ``html`` requires no additional setup.
+Saving as ``vl.json`` and as ``html`` requires no additional setup.
 
 To save charts in other formats requires additional setup: you can use either a Selenium-based
 stack or a NodeJS-based stack.
