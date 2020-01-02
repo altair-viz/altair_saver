@@ -3,6 +3,8 @@
 [![github actions](https://github.com/jakevdp/altair_saver/workflows/build/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Abuild)
 [![github actions](https://github.com/jakevdp/altair_saver/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Alint)
 [![code style black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jakevdp/altair_saver/blob/master/AltairViewer.ipynb)
+
 
 This packge provides extensions to [Altair](http://altair-viz.github.io) for saving charts
 to a variety of output types. Supported output formats are:
