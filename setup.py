@@ -67,6 +67,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=get_install_requirements("requirements.txt"),
+    entry_points={
+        "altair.vegalite.v4.renderer": ["altair_saver=altair_saver:render"],
+        "altair.vega.v5.renderer": ["altair_saver=altair_saver:render"],
+    },
     python_requires=">=3.6",
     classifiers=[
         "Environment :: Console",
