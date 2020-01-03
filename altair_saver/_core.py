@@ -49,7 +49,7 @@ def save(
     fmt : string
         The format in which to save the chart. If not specified and fp is a string,
         fmt will be determined from the file extension. Options are
-        ["png", "svg", "vega", "vega-lite"]
+        ["html", "pdf", "png", "svg", "vega", "vega-lite"].
     mode : string
         The mode of the input spec. Either "vega-lite" (default) or "vega".
     method : string
@@ -88,15 +88,14 @@ def render(
     Parameters
     ----------
     chart : alt.Chart or dict
-        The chart or Vega/Vega-Lite chart specification to be saved
-    fmt : string
-        The format in which to save the chart. If not specified and fp is a string,
-        fmt will be determined from the file extension. Options are
-        ["png", "svg", "vega", "vega-lite"]
+        The chart or Vega/Vega-Lite chart specification
+    fmts : string or list of strings
+        The format(s) to include in the mimebundle. Options are
+        ["html", "pdf", "png", "svg", "vega", "vega-lite"].
     mode : string
         The mode of the input spec. Either "vega-lite" (default) or "vega".
     method : string
-        The save method to use: either a string, or a subclass of Saver.
+        The save method to use: either a string, or a Saver class.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
