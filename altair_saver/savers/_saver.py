@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import IO, Iterable, List, Optional, Union
+from typing import Any, IO, Iterable, List, Optional, Union
 
 from altair_saver._utils import (
     extract_format,
@@ -21,7 +21,9 @@ class Saver(metaclass=abc.ABCMeta):
 
     valid_formats: List[str] = []
 
-    def __init__(self, spec: JSONDict, mode: Optional[str] = None):
+    def __init__(self, spec: JSONDict, mode: Optional[str] = None, **kwargs: Any):
+        if kwargs:
+            raise ValueError(f"Unhandled keyword arguments: {list(kwargs.keys())}")
         if mode is None:
             # TODO: extract mode from spec $schema if not specified.
             mode = "vega-lite"

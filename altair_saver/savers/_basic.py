@@ -1,8 +1,7 @@
 """A basic vega-lite saver"""
 from typing import List
-import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import Mimebundle
+from altair_saver._utils import Mimebundle, fmt_to_mimetype
 
 
 class BasicSaver(Saver):
@@ -13,8 +12,4 @@ class BasicSaver(Saver):
     def _mimebundle(self, fmt: str) -> Mimebundle:
         if self._mode == "vega":
             raise ValueError("Cannot save vega spec as vega-lite.")
-        return {
-            "application/vnd.vegalite.v{}+json".format(
-                alt.VEGALITE_VERSION.split(".")[0]
-            ): self._spec
-        }
+        return {fmt_to_mimetype("vega-lite"): self._spec}

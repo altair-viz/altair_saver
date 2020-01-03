@@ -4,9 +4,8 @@ import shutil
 import subprocess
 from typing import List
 
-import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle
+from altair_saver._utils import JSONDict, Mimebundle, fmt_to_mimetype
 
 
 class ExecutableNotFound(RuntimeError):
@@ -80,20 +79,18 @@ class NodeSaver(Saver):
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
         spec = self._spec
+        mimetype = fmt_to_mimetype(fmt)
+
         if self._mode == "vega-lite":
             spec = vl2vg(spec)
 
         if fmt == "vega":
-            return {
-                "application/vnd.vega.v{}+json".format(
-                    alt.VEGA_VERSION.split(".")[0]
-                ): spec
-            }
+            return {mimetype: spec}
         elif fmt == "png":
-            return {"image/png": vg2png(spec)}
+            return {mimetype: vg2png(spec)}
         elif fmt == "svg":
-            return {"image/svg+xml": vg2svg(spec)}
+            return {mimetype: vg2svg(spec)}
         elif fmt == "pdf":
-            return {"application/pdf": vg2pdf(spec)}
+            return {mimetype: vg2pdf(spec)}
         else:
             raise ValueError(f"Unrecognized format: {fmt}")

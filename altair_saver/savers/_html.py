@@ -3,7 +3,7 @@ import json
 from typing import Dict, List, Optional
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle
+from altair_saver._utils import JSONDict, Mimebundle, fmt_to_mimetype
 from altair_viewer import get_bundled_script
 
 HTML_TEMPLATE = """
@@ -110,4 +110,4 @@ class HTMLSaver(Saver):
                 vegalite_url=self._package_url("vega-lite"),
                 vegaembed_url=self._package_url("vega-embed"),
             )
-        return {"text/html": html}
+        return {fmt_to_mimetype("html"): html}

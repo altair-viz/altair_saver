@@ -8,13 +8,14 @@ import pytest
 
 from altair_saver import (
     save,
+    render,
     BasicSaver,
     HTMLSaver,
     NodeSaver,
     Saver,
     SeleniumSaver,
 )
-from altair_saver._utils import JSONDict
+from altair_saver._utils import JSONDict, mimetype_to_fmt
 
 FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite"]
 
@@ -107,3 +108,14 @@ def test_html_inline(spec: JSONDict, inline: bool) -> None:
         assert cdn_url not in html
     else:
         assert cdn_url in html
+
+
+def test_render_spec(spec: JSONDict) -> None:
+    bundle = render(spec, fmts=FORMATS)
+    assert len(bundle) == len(FORMATS)
+    for mimetype, content in bundle.items():
+        fmt = mimetype_to_fmt(mimetype)
+        if isinstance(content, dict):
+            check_output(json.dumps(content), fmt)
+        else:
+            check_output(content, fmt)

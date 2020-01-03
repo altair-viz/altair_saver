@@ -4,10 +4,54 @@ import os
 import tempfile
 from typing import Any, Dict, IO, Iterator, List, Optional, Union
 
+import altair as alt
+
 MimeType = Union[str, bytes, dict]
 Mimebundle = Dict[str, MimeType]
 JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONDict = Dict[str, JSON]
+
+
+def fmt_to_mimetype(
+    fmt,
+    vegalite_version: str = alt.VEGALITE_VERSION,
+    vega_version: str = alt.VEGA_VERSION,
+) -> str:
+    """Get a mimetype given a format string."""
+    if fmt == "vega-lite":
+        return "application/vnd.vegalite.v{}+json".format(
+            vegalite_version.split(".")[0]
+        )
+    elif fmt == "vega":
+        return "application/vnd.vega.v{}+json".format(vega_version.split(".")[0])
+    elif fmt == "pdf":
+        return "application/pdf"
+    elif fmt == "html":
+        return "text/html"
+    elif fmt == "png":
+        return "image/png"
+    elif fmt == "svg":
+        return "image/svg+xml"
+    else:
+        raise ValueError(f"Unrecognized fmt={fmt!r}")
+
+
+def mimetype_to_fmt(mimetype: str) -> str:
+    """Get a format string given a mimetype."""
+    if mimetype.startswith("application/vnd.vegalite"):
+        return "vega-lite"
+    elif mimetype.startswith("application/vnd.vega"):
+        return "vega"
+    elif mimetype == "application/pdf":
+        return "pdf"
+    elif mimetype == "text/html":
+        return "html"
+    elif mimetype == "image/png":
+        return "png"
+    elif mimetype == "image/svg+xml":
+        return "svg"
+    else:
+        raise ValueError(f"Unrecognized mimetype={mimetype!r}")
 
 
 @contextlib.contextmanager

@@ -2,7 +2,13 @@ import tempfile
 
 import pytest
 
-from altair_saver._utils import extract_format, maybe_open, temporary_filename
+from altair_saver._utils import (
+    extract_format,
+    fmt_to_mimetype,
+    maybe_open,
+    mimetype_to_fmt,
+    temporary_filename,
+)
 
 
 @pytest.mark.parametrize(
@@ -49,3 +55,10 @@ def testmaybe_open_fileobj(mode: str) -> None:
             f.write(content)
         fp.seek(0)
         assert fp.read() == content
+
+
+@pytest.mark.parametrize("fmt", ["vega-lite", "vega", "html", "pdf", "png", "svg"])
+def test_fmt_mimetype(fmt):
+    mimetype = fmt_to_mimetype(fmt)
+    fmt_out = mimetype_to_fmt(mimetype)
+    assert fmt == fmt_out

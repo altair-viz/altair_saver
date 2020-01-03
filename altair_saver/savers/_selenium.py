@@ -6,7 +6,7 @@ import warnings
 
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle, MimeType
+from altair_saver._utils import JSONDict, Mimebundle, MimeType, fmt_to_mimetype
 
 from altair_data_server import Provider, Resource
 from altair_viewer import get_bundled_script
@@ -244,20 +244,21 @@ class SeleniumSaver(Saver):
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         out = self._extract(fmt)
+        mimetype = fmt_to_mimetype(
+            fmt,
+            vega_version=self._vega_version,
+            vegalite_version=self._vegalite_version,
+        )
 
         if fmt == "png":
             assert isinstance(out, str)
             assert out.startswith("data:image/png;base64,")
-            return {"image/png": base64.b64decode(out.split(",", 1)[1].encode())}
+            return {mimetype: base64.b64decode(out.split(",", 1)[1].encode())}
         elif fmt == "svg":
             assert isinstance(out, str)
-            return {"image/svg+xml": out}
+            return {mimetype: out}
         elif fmt == "vega":
             assert isinstance(out, dict)
-            return {
-                "application/vnd.vega.v{}+json".format(
-                    alt.VEGA_VERSION.split(".")[0]
-                ): out
-            }
+            return {mimetype: out}
         else:
             raise ValueError(f"Unrecognized format: {fmt}")
