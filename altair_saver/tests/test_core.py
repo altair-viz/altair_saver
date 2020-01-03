@@ -119,3 +119,10 @@ def test_render_spec(spec: JSONDict) -> None:
             check_output(json.dumps(content), fmt)
         else:
             check_output(content, fmt)
+
+
+def test_infer_mode(spec: JSONDict) -> None:
+    vg_spec = render(spec, "vega").popitem()[1]
+    vl_svg = render(spec, "svg").popitem()[1]
+    vg_svg = render(vg_spec, "svg").popitem()[1]
+    assert vl_svg == vg_svg

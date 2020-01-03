@@ -13,7 +13,7 @@ JSONDict = Dict[str, JSON]
 
 
 def fmt_to_mimetype(
-    fmt,
+    fmt: str,
     vegalite_version: str = alt.VEGALITE_VERSION,
     vega_version: str = alt.VEGA_VERSION,
 ) -> str:
@@ -52,6 +52,40 @@ def mimetype_to_fmt(mimetype: str) -> str:
         return "svg"
     else:
         raise ValueError(f"Unrecognized mimetype={mimetype!r}")
+
+
+def infer_mode_from_spec(spec: JSONDict) -> str:
+    """Given a spec, return the inferred mode.
+
+    This uses the '$schema' value if present, and otherwise tries to
+    infer the type based on top-level keys. If both approaches fail,
+    it returns "vega-lite" by default.
+
+    Parameters
+    ----------
+    spec : dict
+        The vega or vega-lite specification
+
+    Returns
+    -------
+    mode : str
+        Either "vega" or "vega-lite"
+    """
+    if "$schema" in spec:
+        schema = spec["$schema"]
+        if not isinstance(schema, str):
+            pass
+        elif "/vega-lite/" in schema:
+            return "vega-lite"
+        elif "/vega/" in schema:
+            return "vega"
+
+    # Check several vega-only top-level properties.
+    for key in ["axes", "legends", "marks", "projections", "scales", "signals"]:
+        if key in spec:
+            return "vega"
+
+    return "vega-lite"
 
 
 @contextlib.contextmanager

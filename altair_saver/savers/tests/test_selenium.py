@@ -30,7 +30,7 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 @pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
 @pytest.mark.parametrize("offline", [True, False])
 def test_selenium_mimebundle(
-    name: str, data: Any, mode: str, fmt: str, offline: bool
+    name: str, data: Dict[str, Any], mode: str, fmt: str, offline: bool
 ) -> None:
     saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
     if mode == "vega" and fmt == "vega-lite":
@@ -53,7 +53,7 @@ def test_selenium_mimebundle(
 
 
 @pytest.mark.parametrize("name,data", get_testcases())
-def test_stop_and_start(name, data) -> None:
+def test_stop_and_start(name: str, data: Dict[str, Any]) -> None:
     saver = SeleniumSaver(data["vega-lite"])
     bundle1 = saver.mimebundle("png")
 

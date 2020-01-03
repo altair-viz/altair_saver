@@ -63,7 +63,7 @@ class HTMLSaver(Saver):
     def __init__(
         self,
         spec: JSONDict,
-        mode: str = "vega-lite",
+        mode: Optional[str] = None,
         inline: bool = False,
         embed_opt: Optional[JSONDict] = None,
         vega_version: str = alt.VEGA_VERSION,

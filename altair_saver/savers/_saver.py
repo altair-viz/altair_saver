@@ -4,6 +4,7 @@ from typing import Any, IO, Iterable, List, Optional, Union
 
 from altair_saver._utils import (
     extract_format,
+    infer_mode_from_spec,
     maybe_open,
     Mimebundle,
     JSONDict,
@@ -20,13 +21,14 @@ class Saver(metaclass=abc.ABCMeta):
     """
 
     valid_formats: List[str] = []
+    _spec: JSONDict
+    _mode: str
 
     def __init__(self, spec: JSONDict, mode: Optional[str] = None, **kwargs: Any):
         if kwargs:
             raise ValueError(f"Unhandled keyword arguments: {list(kwargs.keys())}")
         if mode is None:
-            # TODO: extract mode from spec $schema if not specified.
-            mode = "vega-lite"
+            mode = infer_mode_from_spec(spec)
         if mode not in ["vega", "vega-lite"]:
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
         self._spec = spec

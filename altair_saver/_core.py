@@ -34,7 +34,7 @@ def save(
     chart: Union[alt.TopLevelMixin, JSONDict],
     fp: Union[IO, str],
     fmt: Optional[str] = None,
-    mode: str = "vega-lite",
+    mode: Optional[str] = None,
     method: Optional[Union[str, type]] = None,
     **kwargs: Any,
 ) -> None:
@@ -46,12 +46,13 @@ def save(
         The chart or Vega/Vega-Lite chart specification to be saved
     fp : file or filename
         location to save the result.
-    fmt : string
+    fmt : string (optinoal)
         The format in which to save the chart. If not specified and fp is a string,
         fmt will be determined from the file extension. Options are
         ["html", "pdf", "png", "svg", "vega", "vega-lite"].
-    mode : string
-        The mode of the input spec. Either "vega-lite" (default) or "vega".
+    mode : string (optional)
+        The mode of the input spec. Either "vega-lite" or "vega". If not specified,
+        it will be inferred from the spec.
     method : string
         The save method to use: either a string, or a subclass of Saver.
     **kwargs :
@@ -79,7 +80,7 @@ def save(
 def render(
     chart: Union[alt.TopLevelMixin, JSONDict],
     fmts: Union[str, Iterable[str]],
-    mode: str = "vega-lite",
+    mode: Optional[str] = None,
     method: Optional[Union[str, type]] = None,
     **kwargs: Any,
 ) -> Mimebundle:
@@ -92,8 +93,9 @@ def render(
     fmts : string or list of strings
         The format(s) to include in the mimebundle. Options are
         ["html", "pdf", "png", "svg", "vega", "vega-lite"].
-    mode : string
-        The mode of the input spec. Either "vega-lite" (default) or "vega".
+    mode : string (optional)
+        The mode of the input spec. Either "vega-lite" or "vega". If not specified,
+        it will be inferred from the spec.
     method : string
         The save method to use: either a string, or a Saver class.
     **kwargs :

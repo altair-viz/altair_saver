@@ -142,7 +142,7 @@ class SeleniumSaver(Saver):
     def __init__(
         self,
         spec: JSONDict,
-        mode: str = "vega-lite",
+        mode: Optional[str] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,

@@ -5,6 +5,8 @@ import pytest
 from altair_saver._utils import (
     extract_format,
     fmt_to_mimetype,
+    JSONDict,
+    infer_mode_from_spec,
     maybe_open,
     mimetype_to_fmt,
     temporary_filename,
@@ -58,7 +60,21 @@ def testmaybe_open_fileobj(mode: str) -> None:
 
 
 @pytest.mark.parametrize("fmt", ["vega-lite", "vega", "html", "pdf", "png", "svg"])
-def test_fmt_mimetype(fmt):
+def test_fmt_mimetype(fmt: str) -> None:
     mimetype = fmt_to_mimetype(fmt)
     fmt_out = mimetype_to_fmt(mimetype)
     assert fmt == fmt_out
+
+
+@pytest.mark.parametrize(
+    "mode, spec",
+    [
+        ("vega-lite", {"$schema": "https://vega.github.io/schema/vega-lite/v4.json"}),
+        ("vega-lite", {"data": {}, "mark": {}, "encodings": {}}),
+        ("vega-lite", {}),
+        ("vega", {"$schema": "https://vega.github.io/schema/vega/v5.json"}),
+        ("vega", {"data": [], "signals": [], "marks": []}),
+    ],
+)
+def test_infer_mode_from_spec(mode: str, spec: JSONDict) -> None:
+    assert infer_mode_from_spec(spec) == mode
