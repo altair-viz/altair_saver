@@ -31,6 +31,15 @@ save(chart, "chart.svg")                  # SVG Image
 save(chart, "chart.pdf")                  # PDF Image
 ```
 
+### Renderer
+Additionally, altair_saver provides an [Altair Renderer](https://altair-viz.github.io/user_guide/display_frontends.html#altair-s-renderer-framework)
+entrypoint that can display the above outputs directly in Jupyter notebooks.
+For example, you can specify a vega-lite mimetype (supported by JupyterLab, nteract, and other
+platforms) with a PNG fallback for other frontends as follows:
+```python
+alt.renderers.enable('altair_saver', ['vega-lite', 'png'])
+```
+
 ## Installation
 The ``altair_saver`` package can be installed with:
 ```
