@@ -1,7 +1,7 @@
 # Altair Saver
 
-[![github actions](https://github.com/jakevdp/altair_saver/workflows/build/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Abuild)
-[![github actions](https://github.com/jakevdp/altair_saver/workflows/lint/badge.svg)](https://github.com/jakevdp/altair_saver/actions?query=workflow%3Alint)
+[![github actions](https://github.com/altair-viz/altair_saver/workflows/build/badge.svg)](https://github.com/altair-viz/altair_saver/actions?query=workflow%3Abuild)
+[![github actions](https://github.com/altair-viz/altair_saver/workflows/lint/badge.svg)](https://github.com/altair-viz/altair_saver/actions?query=workflow%3Alint)
 [![code style black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jakevdp/altair_saver/blob/master/AltairSaver.ipynb)
 
@@ -34,7 +34,7 @@ save(chart, "chart.pdf")                  # PDF Image
 ## Installation
 ``altair_saver`` can be installed with:
 ```
-$ pip install git+https://github.com/jakevdp/altair_saver.git
+$ pip install git+https://github.com/altair-viz/altair_saver.git
 ```
 Saving as ``vl.json`` and as ``html`` requires no additional setup.
 
