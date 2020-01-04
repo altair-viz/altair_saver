@@ -1,11 +1,15 @@
 import functools
 import json
 import shutil
-import subprocess
 from typing import List
 
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle, fmt_to_mimetype
+from altair_saver._utils import (
+    JSONDict,
+    Mimebundle,
+    fmt_to_mimetype,
+    check_output_with_stderr,
+)
 
 
 class ExecutableNotFound(RuntimeError):
@@ -21,7 +25,7 @@ def npm_bin(global_: bool) -> str:
     cmd = [npm, "bin"]
     if global_:
         cmd.append("--global")
-    return subprocess.check_output(cmd).decode().strip()
+    return check_output_with_stderr(cmd).decode()
 
 
 @functools.lru_cache(16)
@@ -37,7 +41,7 @@ def vl2vg(spec: JSONDict) -> JSONDict:
     """Compile a Vega-Lite spec into a Vega spec."""
     vl2vg = exec_path("vl2vg")
     vl_json = json.dumps(spec).encode()
-    vg_json = subprocess.check_output([vl2vg], input=vl_json)
+    vg_json = check_output_with_stderr([vl2vg], input=vl_json)
     return json.loads(vg_json)
 
 
@@ -45,21 +49,21 @@ def vg2png(spec: JSONDict) -> bytes:
     """Generate a PNG image from a Vega spec."""
     vg2png = exec_path("vg2png")
     vg_json = json.dumps(spec).encode()
-    return subprocess.check_output([vg2png], input=vg_json)
+    return check_output_with_stderr([vg2png], input=vg_json)
 
 
 def vg2pdf(spec: JSONDict) -> bytes:
     """Generate a PDF image from a Vega spec."""
     vg2pdf = exec_path("vg2pdf")
     vg_json = json.dumps(spec).encode()
-    return subprocess.check_output([vg2pdf], input=vg_json)
+    return check_output_with_stderr([vg2pdf], input=vg_json)
 
 
 def vg2svg(spec: JSONDict) -> str:
     """Generate an SVG image from a Vega spec."""
     vg2svg = exec_path("vg2svg")
     vg_json = json.dumps(spec).encode()
-    return subprocess.check_output([vg2svg], input=vg_json).decode()
+    return check_output_with_stderr([vg2svg], input=vg_json).decode()
 
 
 class NodeSaver(Saver):

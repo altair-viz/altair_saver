@@ -1,6 +1,8 @@
 import contextlib
 import io
 import os
+import subprocess
+import sys
 import tempfile
 from typing import Any, Dict, IO, Iterator, List, Optional, Union
 
@@ -136,3 +138,32 @@ def extract_format(fp: Union[IO, str]) -> str:
         return "vega-lite"
     else:
         return filename.split(".")[-1]
+
+
+def check_output_with_stderr(
+    cmd: Union[str, List[str]], shell: bool = False, input: Optional[bytes] = None
+) -> bytes:
+    """Run a command in a subprocess, printing stderr to sys.stderr.
+
+    This is important because subprocess stderr in notebooks is printed to the
+    terminal rather than the notebook.
+    """
+    try:
+        ps = subprocess.run(
+            cmd,
+            shell=shell,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            input=input,
+        )
+    except subprocess.CalledProcessError as err:
+        if err.stderr:
+            sys.stderr.write(err.stderr.decode())
+            sys.stderr.flush()
+        raise
+    else:
+        if ps.stderr:
+            sys.stderr.write(ps.stderr.decode())
+            sys.stderr.flush()
+        return ps.stdout
