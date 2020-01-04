@@ -67,6 +67,11 @@ On Linux systems, this can be setup as follows:
 $ pip install selenium
 $ apt-get install chromium-chromedriver
 ```
+Using conda, the required packages can be installed as follows:
+```bash
+$ conda create -n selenium -c conda-forge python selenium python-chromedriver-binary
+$ conda activate selenium
+```
 
 ### NodeJS
 The *nodejs* backend supports the following formats: 
@@ -85,4 +90,9 @@ to install the required packages:
 ```bash
 $ npm install vega-lite vega-cli canvas
 ```
-
+Using conda, the required packages can be installed as follows:
+```bash
+$ conda create -n nodejs -c conda-forge altair python nodejs
+$ conda activate nodejs
+$ npm install -g vega-lite vega-cli canvas
+```
