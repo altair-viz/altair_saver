@@ -1,6 +1,8 @@
+import subprocess
 import tempfile
 
 import pytest
+from _pytest.capture import SysCaptureBinary
 
 from altair_saver._utils import (
     extract_format,
@@ -10,6 +12,7 @@ from altair_saver._utils import (
     maybe_open,
     mimetype_to_fmt,
     temporary_filename,
+    check_output_with_stderr,
 )
 
 
@@ -78,3 +81,25 @@ def test_fmt_mimetype(fmt: str) -> None:
 )
 def test_infer_mode_from_spec(mode: str, spec: JSONDict) -> None:
     assert infer_mode_from_spec(spec) == mode
+
+
+def test_check_output_with_stderr(capsysbinary: SysCaptureBinary):
+    output = check_output_with_stderr(
+        r'>&2 echo "the error" && echo "the output"', shell=True
+    )
+    assert output == b"the output\n"
+    captured = capsysbinary.readouterr()
+    assert captured.out == b""
+    assert captured.err == b"the error\n"
+
+
+def test_check_output_with_stderr_exit_1(capsysbinary: SysCaptureBinary):
+    with pytest.raises(subprocess.CalledProcessError) as err:
+        output = check_output_with_stderr(
+            r'>&2 echo "the error" && echo "the output" && exit 1', shell=True
+        )
+        assert output == b"the output\n"
+    assert err.value.stderr == b"the error\n"
+    captured = capsysbinary.readouterr()
+    assert captured.out == b""
+    assert captured.err == b"the error\n"
