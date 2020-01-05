@@ -67,11 +67,13 @@ On Linux systems, this can be setup as follows:
 $ pip install selenium
 $ apt-get install chromium-chromedriver
 ```
-Using conda, the required packages can be installed as follows:
+Using conda, the required packages can be installed as follows (a compatible version of
+[Google Chrome](https://www.google.com/chrome/) must be installed separately):
 ```bash
-$ conda create -n selenium -c conda-forge python selenium python-chromedriver-binary
-$ conda activate selenium
+$ conda install -c python-chromedriver-binary
 ```
+Selenium supports [other browsers](https://selenium-python.readthedocs.io/installation.html) as well,
+but altair-saver is currently only tested with Chrome.
 
 ### NodeJS
 The *nodejs* backend supports the following formats: 
@@ -90,9 +92,8 @@ to install the required packages:
 ```bash
 $ npm install vega-lite vega-cli canvas
 ```
-Using conda, the required packages can be installed as follows:
+Using conda, node and the required packages can be installed as follows:
 ```bash
-$ conda create -n nodejs -c conda-forge altair python nodejs
-$ conda activate nodejs
+$ conda install -c conda-forge nodejs
 $ npm install -g vega-lite vega-cli canvas
 ```
