@@ -15,6 +15,12 @@ import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
+try:
+    # In some environments, this is required to activate chromedriver
+    import chromedriver_binary  # noqa: E402, F401
+except:  # noqa: E722
+    pass
+
 CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
 HTML_TEMPLATE = """

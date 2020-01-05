@@ -7,6 +7,12 @@ import pytest
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
+try:
+    # In some environments, this is required to activate chromedriver
+    import chromedriver_binary  # noqa: E402, F401
+except:  # noqa: E722
+    pass
+
 from altair_saver.savers import HTMLSaver
 
 
