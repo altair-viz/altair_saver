@@ -43,7 +43,7 @@ alt.renderers.enable('altair_saver', ['vega-lite', 'png'])
 ## Installation
 The ``altair_saver`` package can be installed with:
 ```
-$ pip install git+https://github.com/altair-viz/altair_saver.git
+$ pip install altair_saver
 ```
 Saving as ``vl.json`` and as ``html`` requires no additional setup.
 
