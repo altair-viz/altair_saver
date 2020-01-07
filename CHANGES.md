@@ -1,5 +1,7 @@
 # Altair Saver Change Log
 
+## Version 0.2.0 (unreleased)
+
 ## Version 0.1.0
 
 Initial release including:
