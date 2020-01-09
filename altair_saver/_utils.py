@@ -1,6 +1,8 @@
 import contextlib
+from http import client
 import io
 import os
+import socket
 import subprocess
 import sys
 import tempfile
@@ -12,6 +14,19 @@ MimeType = Union[str, bytes, dict]
 Mimebundle = Dict[str, MimeType]
 JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONDict = Dict[str, JSON]
+
+
+def internet_connected(test_url: str = "cdn.jsdelivr.net") -> bool:
+    """Return True if web connection is available."""
+    conn = client.HTTPConnection(test_url, timeout=5)
+    try:
+        conn.request("HEAD", "/")
+    except socket.gaierror:
+        return False
+    else:
+        return True
+    finally:
+        conn.close()
 
 
 def fmt_to_mimetype(

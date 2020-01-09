@@ -40,7 +40,7 @@
       "tickCount": {
         "signal": "ceil(width/40)"
       },
-      "title": "Horsepower",
+      "title": "x",
       "zindex": 0
     },
     {
@@ -51,27 +51,33 @@
       "tickCount": {
         "signal": "ceil(height/40)"
       },
-      "title": "Miles_per_Gallon",
+      "title": "y",
       "zindex": 0
     }
   ],
   "background": "white",
   "data": [
     {
-      "format": {
-        "type": "json"
-      },
       "name": "source_0",
       "transform": [
         {
-          "expr": "isValid(datum[\"Horsepower\"]) && isFinite(+datum[\"Horsepower\"]) && isValid(datum[\"Miles_per_Gallon\"]) && isFinite(+datum[\"Miles_per_Gallon\"])",
+          "as": "x",
+          "start": 0,
+          "stop": 50,
+          "type": "sequence"
+        },
+        {
+          "as": "y",
+          "expr": "sin(datum.x)",
+          "type": "formula"
+        },
+        {
+          "expr": "isValid(datum[\"x\"]) && isFinite(+datum[\"x\"]) && isValid(datum[\"y\"]) && isFinite(+datum[\"y\"])",
           "type": "filter"
         }
-      ],
-      "url": "https://vega.github.io/vega-datasets/data/cars.json"
+      ]
     }
   ],
-  "description": "A scatterplot showing horsepower and miles per gallons for various cars.",
   "height": 200,
   "marks": [
     {
@@ -87,11 +93,11 @@
             "value": "#4c78a8"
           },
           "x": {
-            "field": "Horsepower",
+            "field": "x",
             "scale": "x"
           },
           "y": {
-            "field": "Miles_per_Gallon",
+            "field": "y",
             "scale": "y"
           }
         }
@@ -111,7 +117,7 @@
     {
       "domain": {
         "data": "source_0",
-        "field": "Horsepower"
+        "field": "x"
       },
       "name": "x",
       "nice": true,
@@ -127,7 +133,7 @@
     {
       "domain": {
         "data": "source_0",
-        "field": "Miles_per_Gallon"
+        "field": "y"
       },
       "name": "y",
       "nice": true,
@@ -142,5 +148,5 @@
     }
   ],
   "style": "cell",
-  "width": 200
+  "width": 400
 }

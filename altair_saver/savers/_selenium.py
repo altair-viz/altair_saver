@@ -241,7 +241,7 @@ class SeleniumSaver(Saver):
             online = driver.execute_script("return navigator.onLine")
             if not online:
                 raise RuntimeError(
-                    f"Internet connection required for saving chart as {fmt}"
+                    f"Internet connection required for saving chart as {fmt} with offline=False."
                 )
         return driver.execute_async_script(
             EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
