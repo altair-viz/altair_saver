@@ -7,6 +7,12 @@ import pytest
 from PIL import Image
 
 from altair_saver.savers import SeleniumSaver
+from altair_saver._utils import internet_connected
+
+
+@pytest.fixture(scope="module")
+def internet_ok():
+    return internet_connected()
 
 
 def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
@@ -30,8 +36,15 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 @pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
 @pytest.mark.parametrize("offline", [True, False])
 def test_selenium_mimebundle(
-    name: str, data: Dict[str, Any], mode: str, fmt: str, offline: bool
+    name: str,
+    data: Dict[str, Any],
+    mode: str,
+    fmt: str,
+    offline: bool,
+    internet_ok: bool,
 ) -> None:
+    if not (offline or internet_ok):
+        pytest.xfail("Internet not available")
     saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
     if mode == "vega" and fmt == "vega-lite":
         with pytest.raises(ValueError):
