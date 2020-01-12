@@ -6,7 +6,7 @@ from typing import Any, Dict, IO, Iterator, Tuple
 import pytest
 from PIL import Image
 
-from altair_saver.savers import SeleniumSaver
+from altair_saver.savers import SeleniumSaver, JavascriptError
 from altair_saver._utils import internet_connected
 
 
@@ -79,3 +79,15 @@ def test_stop_and_start(name: str, data: Dict[str, Any]) -> None:
 
 def test_enabled() -> None:
     assert SeleniumSaver.enabled()
+
+
+def test_extract_error() -> None:
+    saver = SeleniumSaver({})
+    with pytest.raises(JavascriptError) as err:
+        saver._extract("png")
+    assert "Invalid specification" in str(err.value)
+
+    saver = SeleniumSaver({}, mode="vega")
+    with pytest.raises(JavascriptError) as err:
+        saver._extract("xxx")
+    assert "Unrecognized format" in str(err.value)

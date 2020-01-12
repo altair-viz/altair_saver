@@ -15,6 +15,11 @@ import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
+
+class JavascriptError(RuntimeError):
+    pass
+
+
 CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 
 HTML_TEMPLATE = """
@@ -41,12 +46,16 @@ var done = arguments[4];
 
 if (mode === 'vega-lite') {
     vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
-    const compiled = vegaLite.compile(spec);
-    spec = compiled.spec;
+    try {
+        const compiled = vegaLite.compile(spec);
+        spec = compiled.spec;
+    } catch(error) {
+        done({error: error.toString()})
+    }
 }
 
 if (format === 'vega') {
-    done(spec)
+    done({result: spec})
 } else if (format === 'png') {
     new vega.View(vega.parse(spec), {
             loader: vega.loader(),
@@ -56,8 +65,11 @@ if (format === 'vega') {
         .initialize()
         .toCanvas(scaleFactor)
         .then(function(canvas){return canvas.toDataURL('image/png');})
-        .then(done)
-        .catch(function(err) { console.error(err); });
+        .then(result => done({result}))
+        .catch(function(err) {
+            console.error(err);
+            done({error: err.toString()});
+        });
 } else if (format === 'svg') {
     new vega.View(vega.parse(spec), {
             loader: vega.loader(),
@@ -66,10 +78,15 @@ if (format === 'vega') {
         })
         .initialize()
         .toSVG(scaleFactor)
-        .then(done)
-        .catch(function(err) { console.error(err); });
+        .then(result => done({result}))
+        .catch(function(err) {
+            console.error(err);
+            done({error: err.toString()});
+        });
 } else {
-    console.error("Unrecognized format: " + format)
+    error = "Unrecognized format: " + format;
+    console.error(error);
+    done({error});
 }
 """
 
@@ -243,9 +260,12 @@ class SeleniumSaver(Saver):
                 raise RuntimeError(
                     f"Internet connection required for saving chart as {fmt} with offline=False."
                 )
-        return driver.execute_async_script(
+        result = driver.execute_async_script(
             EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
         )
+        if "error" in result:
+            raise JavascriptError(result["error"])
+        return result["result"]
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         out = self._extract(fmt)
