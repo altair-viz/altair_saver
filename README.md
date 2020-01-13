@@ -47,11 +47,19 @@ $ pip install altair_saver
 ```
 Saving as ``vl.json`` and as ``html`` requires no additional setup.
 
-To save charts in other formats requires additional dependencies in order to execute the
-javascript code used to render and save Altair charts. ``altair_saver`` provides interfaces
-to two different backends, respectively based on Selenium and NodeJS.
+To install with conda, use
+```
+$ conda install -c conda-forge altair_saver
+```
+The conda package installs the *NodeJS* dependencies described below, so charts can be
+saved to ``png``, ``svg``, and ``pdf`` without additional setup.
 
-### Selenium
+### Additional Requirements
+
+Output to ``png``, ``svg``, and ``pdf`` requires execution of Javascript code, which
+``altair_saver`` can do via one of two backends.
+
+#### Selenium
 The *selenium* backend supports the following formats:
 
 - `.vg.json`
@@ -75,7 +83,7 @@ $ conda install -c python-chromedriver-binary
 Selenium supports [other browsers](https://selenium-python.readthedocs.io/installation.html) as well,
 but altair-saver is currently only tested with Chrome.
 
-### NodeJS
+#### NodeJS
 The *nodejs* backend supports the following formats: 
 
 - `.vg.json`
@@ -94,6 +102,6 @@ $ npm install vega-lite vega-cli canvas
 ```
 Using conda, node and the required packages can be installed as follows:
 ```bash
-$ conda install -c conda-forge nodejs
-$ npm install -g vega-lite vega-cli canvas
+$ conda install -c conda-forge vega-cli vega-lite-cli
 ```
+These packages are included automatically when installing ``altair_saver`` via conda-forge.
