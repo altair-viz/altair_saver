@@ -44,50 +44,46 @@ var scaleFactor = arguments[2];
 var format = arguments[3];
 var done = arguments[4];
 
-if (mode === 'vega-lite') {
-    vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
-    try {
-        const compiled = vegaLite.compile(spec);
-        spec = compiled.spec;
-    } catch(error) {
-        done({error: error.toString()})
+if (format === 'vega') {
+    if (mode === 'vega-lite') {
+        vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
+        try {
+            const compiled = vegaLite.compile(spec);
+            spec = compiled.spec;
+        } catch(error) {
+            done({error: error.toString()})
+        }
     }
+    done({result: spec});
 }
 
-if (format === 'vega') {
-    done({result: spec})
-} else if (format === 'png') {
-    new vega.View(vega.parse(spec), {
-            loader: vega.loader(),
-            logLevel: vega.Warn,
-            renderer: 'none',
-        })
-        .initialize()
-        .toCanvas(scaleFactor)
-        .then(function(canvas){return canvas.toDataURL('image/png');})
-        .then(result => done({result}))
-        .catch(function(err) {
-            console.error(err);
-            done({error: err.toString()});
-        });
-} else if (format === 'svg') {
-    new vega.View(vega.parse(spec), {
-            loader: vega.loader(),
-            logLevel: vega.Warn,
-            renderer: 'none',
-        })
-        .initialize()
-        .toSVG(scaleFactor)
-        .then(result => done({result}))
-        .catch(function(err) {
-            console.error(err);
-            done({error: err.toString()});
-        });
-} else {
-    error = "Unrecognized format: " + format;
-    console.error(error);
-    done({error});
-}
+vegaEmbed('#vis', spec, {mode}).then(function(result) {
+    if (format === 'png') {
+        result.view
+            .toCanvas(scaleFactor)
+            .then(function(canvas){return canvas.toDataURL('image/png');})
+            .then(result => done({result}))
+            .catch(function(err) {
+                console.error(err);
+                done({error: err.toString()});
+            });
+    } else if (format === 'svg') {
+        result.view
+            .toSVG(scaleFactor)
+            .then(result => done({result}))
+            .catch(function(err) {
+                console.error(err);
+                done({error: err.toString()});
+            });
+    } else {
+        error = "Unrecognized format: " + format;
+        console.error(error);
+        done({error});
+    }
+}).catch(function(err) {
+    console.error(err);
+    done({error: err.toString()});
+});
 """
 
 
