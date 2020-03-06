@@ -94,12 +94,6 @@ class _DriverRegistry:
         webdriver_options = webdriver_options_class()
         webdriver_options.add_argument("--headless")
 
-        if issubclass(webdriver_class, selenium.webdriver.Chrome):
-            # for linux/osx root user, need to add --no-sandbox option.
-            # since geteuid doesn't exist on windows, we don't check it
-            if hasattr(os, "geteuid") and (os.geteuid() == 0):
-                webdriver_options.add_argument("--no-sandbox")
-
         driver_obj = webdriver_class(options=webdriver_options)
         atexit.register(driver_obj.quit)
         driver_obj.set_page_load_timeout(driver_timeout)
