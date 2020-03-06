@@ -203,7 +203,11 @@ class SeleniumSaver(Saver):
 
         print(f"HTML:\n{html}")
 
-        url = self._serve(html, js_resources)
+        # url = self._serve(html, js_resources)
+        filename = os.path.abspath('index.html')
+        with open(filename, 'w') as f:
+            f.write(html)
+        url = f"file://{filename}"
         driver.get("about:blank")
         driver.get(url)
         try:
