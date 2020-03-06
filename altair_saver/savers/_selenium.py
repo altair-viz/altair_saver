@@ -148,62 +148,23 @@ class SeleniumSaver(Saver):
                 return driver
         return None
 
-    @classmethod
-    def enabled(cls) -> bool:
-        return cls._select_webdriver(20) is not None
-
-    @classmethod
-    def _serve(cls, content: str, js_resources: Dict[str, str]) -> str:
-        if cls._provider is None:
-            cls._provider = Provider()
-        resource = cls._provider.create(
-            content=content, route="", headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "no-cache"},
-        )
-        cls._resources[resource.url] = resource
-        for route, content in js_resources.items():
-            cls._resources[route] = cls._provider.create(content=content, route=route, headers={"Cache-Control": "no-cache"})
-        return resource.url
-
-    @classmethod
-    def _stop_serving(cls) -> None:
-        if cls._provider is not None:
-            cls._provider.stop()
-            cls._provider = None
-
     def _extract(self, fmt: str) -> MimeType:
         if fmt == "vega" and self._mode == "vega":
             return self._spec
 
         driver = self._registry.get(self._webdriver, self._driver_timeout)
-
-        if self._offline:
-            js_resources = {
-                "vega.js": get_bundled_script("vega", self._vega_version),
-                "vega-lite.js": get_bundled_script("vega-lite", self._vegalite_version),
-                "vega-embed.js": get_bundled_script(
-                    "vega-embed", self._vegaembed_version
-                ),
-            }
-            html = HTML_TEMPLATE.format(
-                vega_url="/vega.js",
-                vegalite_url="/vega-lite.js",
-                vegaembed_url="/vega-embed.js",
-            )
-        else:
-            js_resources = {}
-            html = HTML_TEMPLATE.format(
-                vega_url=CDN_URL.format(package="vega", version=self._vega_version),
-                vegalite_url=CDN_URL.format(
-                    package="vega-lite", version=self._vegalite_version
-                ),
-                vegaembed_url=CDN_URL.format(
-                    package="vega-embed", version=self._vegaembed_version
-                ),
-            )
+        html = HTML_TEMPLATE.format(
+            vega_url=CDN_URL.format(package="vega", version=self._vega_version),
+            vegalite_url=CDN_URL.format(
+                package="vega-lite", version=self._vegalite_version
+            ),
+            vegaembed_url=CDN_URL.format(
+                package="vega-embed", version=self._vegaembed_version
+            ),
+        )
 
         print(f"HTML:\n{html}")
 
-        # url = self._serve(html, js_resources)
         filename = os.path.abspath('index.html')
         with open(filename, 'w') as f:
             f.write(html)
@@ -232,22 +193,4 @@ class SeleniumSaver(Saver):
         return result["result"]
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
-        out = self._extract(fmt)
-        mimetype = fmt_to_mimetype(
-            fmt,
-            vega_version=self._vega_version,
-            vegalite_version=self._vegalite_version,
-        )
-
-        if fmt == "png":
-            assert isinstance(out, str)
-            assert out.startswith("data:image/png;base64,")
-            return {mimetype: base64.b64decode(out.split(",", 1)[1].encode())}
-        elif fmt == "svg":
-            assert isinstance(out, str)
-            return {mimetype: out}
-        elif fmt == "vega":
-            assert isinstance(out, dict)
-            return {mimetype: out}
-        else:
-            raise ValueError(f"Unrecognized format: {fmt}")
+        raise NotImplementedError()
