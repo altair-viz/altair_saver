@@ -40,14 +40,7 @@ HTML_TEMPLATE = """
 EXTRACT_CODE = """
 var spec = arguments[0];
 var done = arguments[1];
-
-try {
-    const compiled = vegaLite.compile(spec);
-    spec = compiled.spec;
-} catch(error) {
-    done({error: error.toString()})
-}
-done({result: spec});
+done({result: vegaLite.compile(spec).spec})
 """
 
 
