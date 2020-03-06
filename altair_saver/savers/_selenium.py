@@ -119,7 +119,7 @@ class SeleniumSaver(Saver):
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
         driver_timeout: int = 20,
         scale_factor: float = 1,
-        webdriver: Optional[Union[str, WebDriver]] = None,
+        webdriver: Optional[Union[str, WebDriver]] = "chrome",
         offline: bool = True,
     ) -> None:
         self._vega_version = vega_version
@@ -127,31 +127,11 @@ class SeleniumSaver(Saver):
         self._vegaembed_version = vegaembed_version
         self._driver_timeout = driver_timeout
         self._scale_factor = scale_factor
-        self._webdriver = (
-            self._select_webdriver(driver_timeout) if webdriver is None else webdriver
-        )
+        self._webdriver = webdriver
         self._offline = offline
         super().__init__(spec=spec, mode=mode)
 
-    @classmethod
-    def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
-        for driver in ["firefox", "chrome"]:
-            try:
-                cls._registry.get(driver, driver_timeout)
-            except WebDriverException:
-                pass
-            except Exception as e:
-                warnings.warn(
-                    f"Unexpected exception when attempting WebDriver creation: {e}"
-                )
-            else:
-                return driver
-        return None
-
     def _extract(self, fmt: str) -> MimeType:
-        if fmt == "vega" and self._mode == "vega":
-            return self._spec
-
         driver = self._registry.get(self._webdriver, self._driver_timeout)
         html = HTML_TEMPLATE.format(
             vega_url=CDN_URL.format(package="vega", version=self._vega_version),
