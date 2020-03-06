@@ -1,5 +1,28 @@
-from altair_saver import SeleniumSaver
+import os
 import json
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
+
+html = """
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Embedding Vega-Lite</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.9.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.0.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.2.2"></script>
+</head>
+<body>
+  <div id="vis"></div>
+</body>
+</html>
+"""
+
+code = """
+var spec = arguments[0];
+var done = arguments[1];
+done(vegaLite.compile(spec).spec);
+"""
 
 vegalite_spec = {
   "data": {
@@ -22,14 +45,29 @@ vegalite_spec = {
   }
 }
 
-saver = SeleniumSaver(
-    vegalite_spec,
-    vega_version='5.9.2',
-    vegalite_version='4.0.2',
-    vegaembed_version='6.2.2',
-    offline=False
-)
-vega_spec = saver._extract('vega')
+html_file = os.path.abspath('index.html')
+with open(html_file, 'w') as f:
+    f.write(html)
+url = f"file://{html_file}"
+
+options = Options()
+options.add_argument("--headless")
+driver = Chrome(options=options)
+try:
+    driver.get("about:blank")
+    driver.get(url)
+    try:
+        driver.find_element_by_id("vis")
+    except NoSuchElementException:
+        raise RuntimeError(f"Could not load {url}")
+    online = driver.execute_script("return navigator.onLine")
+    if not online:
+        raise RuntimeError(
+            f"Internet connection required for saving chart as {fmt} with offline=False."
+        )
+    vega_spec = driver.execute_async_script(code, vegalite_spec)
+finally:
+    driver.close()
 
 print(json.dumps(vega_spec, indent=2))
 got = vega_spec['scales'][1]['range']
