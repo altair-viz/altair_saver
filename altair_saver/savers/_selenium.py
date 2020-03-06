@@ -39,51 +39,15 @@ HTML_TEMPLATE = """
 
 EXTRACT_CODE = """
 var spec = arguments[0];
-var mode = arguments[1];
-var scaleFactor = arguments[2];
-var format = arguments[3];
-var done = arguments[4];
+var done = arguments[1];
 
-if (format === 'vega') {
-    if (mode === 'vega-lite') {
-        vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
-        try {
-            const compiled = vegaLite.compile(spec);
-            spec = compiled.spec;
-        } catch(error) {
-            done({error: error.toString()})
-        }
-    }
-    done({result: spec});
+try {
+    const compiled = vegaLite.compile(spec);
+    spec = compiled.spec;
+} catch(error) {
+    done({error: error.toString()})
 }
-
-vegaEmbed('#vis', spec, {mode}).then(function(result) {
-    if (format === 'png') {
-        result.view
-            .toCanvas(scaleFactor)
-            .then(function(canvas){return canvas.toDataURL('image/png');})
-            .then(result => done({result}))
-            .catch(function(err) {
-                console.error(err);
-                done({error: err.toString()});
-            });
-    } else if (format === 'svg') {
-        result.view
-            .toSVG(scaleFactor)
-            .then(result => done({result}))
-            .catch(function(err) {
-                console.error(err);
-                done({error: err.toString()});
-            });
-    } else {
-        error = "Unrecognized format: " + format;
-        console.error(error);
-        done({error});
-    }
-}).catch(function(err) {
-    console.error(err);
-    done({error: err.toString()});
-});
+done({result: spec});
 """
 
 
@@ -199,11 +163,11 @@ class SeleniumSaver(Saver):
         if cls._provider is None:
             cls._provider = Provider()
         resource = cls._provider.create(
-            content=content, route="", headers={"Access-Control-Allow-Origin": "*"},
+            content=content, route="", headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "no-cache"},
         )
         cls._resources[resource.url] = resource
         for route, content in js_resources.items():
-            cls._resources[route] = cls._provider.create(content=content, route=route,)
+            cls._resources[route] = cls._provider.create(content=content, route=route, headers={"Cache-Control": "no-cache"})
         return resource.url
 
     @classmethod
@@ -243,6 +207,8 @@ class SeleniumSaver(Saver):
                 ),
             )
 
+        print(f"HTML:\n{html}")
+
         url = self._serve(html, js_resources)
         driver.get("about:blank")
         driver.get(url)
@@ -256,8 +222,12 @@ class SeleniumSaver(Saver):
                 raise RuntimeError(
                     f"Internet connection required for saving chart as {fmt} with offline=False."
                 )
+
+        print(f"SCRIPT:\n{EXTRACT_CODE}")
+        assert self._mode == 'vega-lite'
+        assert fmt == 'vega'
         result = driver.execute_async_script(
-            EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
+            EXTRACT_CODE, self._spec
         )
         if "error" in result:
             raise JavascriptError(result["error"])

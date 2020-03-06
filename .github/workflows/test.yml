@@ -1,4 +1,4 @@
-name: build
+name: test
 
 on: [push, pull_request]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.8' ]
     name: Python ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v1
@@ -15,25 +15,17 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Set Up Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    - name: Set Up Chromedriver
+    - name: Set Up Selenium/Chromedriver
       run: |
         sudo apt-get update
         sudo apt-get --only-upgrade install google-chrome-stable
         sudo apt-get -yqq install chromium-chromedriver
-    - name: Set Up vega CLI
-      run: |
-        npm install -g vega-lite vega-cli canvas
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pillow pypdf2  # optional test requirements
         pip install .
-    - name: Test with pytest
+    - name: Run test 1
       run: |
-        pip install pytest
-        pytest --doctest-modules altair_saver
+        python selenium_test.py
+
       
