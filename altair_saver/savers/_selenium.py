@@ -177,7 +177,7 @@ class SeleniumSaver(Saver):
 
     @classmethod
     def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
-        for driver in ["firefox", "chrome"]:
+        for driver in ["chrome", "firefox"]:
             try:
                 cls._registry.get(driver, driver_timeout)
             except WebDriverException:
