@@ -18,7 +18,7 @@ HTML_TEMPLATE = """
 <div id="vis"></div>
 <script type="text/javascript">
   const spec = {spec};
-  const embedOpt = {embed_opt};
+  const embedOpt = {embed_options};
   vegaEmbed('#vis', spec, embedOpt).catch(console.error);
 </script>
 </body>
@@ -42,7 +42,7 @@ INLINE_HTML_TEMPLATE = """
 <div id="vis"></div>
 <script type="text/javascript">
   const spec = {spec};
-  const embedOpt = {embed_opt};
+  const embedOpt = {embed_options};
   vegaEmbed('#vis', spec, embedOpt).catch(console.error);
 </script>
 </body>
@@ -58,26 +58,26 @@ class HTMLSaver(Saver):
     valid_formats: List[str] = ["html"]
     _package_versions: Dict[str, str]
     _inline: bool
-    _embed_opt: JSONDict
+    _embed_options: JSONDict
 
     def __init__(
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
+        embed_options: Optional[JSONDict] = None,
         inline: bool = False,
-        embed_opt: Optional[JSONDict] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
     ) -> None:
         self._inline = inline
-        self._embed_opt = embed_opt or {}
+        self._embed_options = embed_options or {}
         self._package_versions = {
             "vega": vega_version,
             "vega-lite": vegalite_version,
             "vega-embed": vegaembed_version,
         }
-        super().__init__(spec=spec, mode=mode)
+        super().__init__(spec=spec, mode=mode, embed_options=embed_options)
 
     def _package_url(self, package: str) -> str:
         return CDN_URL.format(package=package, version=self._package_versions[package])
@@ -90,7 +90,7 @@ class HTMLSaver(Saver):
         if self._inline:
             html = INLINE_HTML_TEMPLATE.format(
                 spec=json.dumps(self._spec),
-                embed_opt=json.dumps(self._embed_opt),
+                embed_options=json.dumps(self._embed_options),
                 vega_version=self._package_versions["vega"],
                 vegalite_version=self._package_versions["vega-lite"],
                 vegaembed_version=self._package_versions["vega-embed"],
@@ -105,7 +105,7 @@ class HTMLSaver(Saver):
         else:
             html = HTML_TEMPLATE.format(
                 spec=json.dumps(self._spec),
-                embed_opt=json.dumps(self._embed_opt),
+                embed_options=json.dumps(self._embed_options),
                 vega_url=self._package_url("vega"),
                 vegalite_url=self._package_url("vega-lite"),
                 vegaembed_url=self._package_url("vega-embed"),

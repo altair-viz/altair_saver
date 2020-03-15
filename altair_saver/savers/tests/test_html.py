@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from typing import Any, Dict, IO, Iterator, Tuple
+from typing import Any, Dict, IO, Iterator, Optional, Tuple
 
 from altair_data_server import Provider
 from PIL import Image
@@ -49,14 +49,18 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 
 
 @pytest.mark.parametrize("inline", [True, False])
+@pytest.mark.parametrize("embed_options", [None, {"theme": "dark"}])
 @pytest.mark.parametrize("case, data", get_testcases())
-def test_html_saver(case: str, data: Dict[str, Any], inline: bool) -> None:
-    saver = HTMLSaver(data["vega-lite"], inline=inline)
+def test_html_saver(
+    case: str, data: Dict[str, Any], embed_options: Optional[dict], inline: bool
+) -> None:
+    saver = HTMLSaver(data["vega-lite"], inline=inline, embed_options=embed_options)
     bundle = saver.mimebundle("html")
     html = bundle.popitem()[1]
     assert isinstance(html, str)
     assert html.strip().startswith("<!DOCTYPE html>")
     assert json.dumps(data["vega-lite"]) in html
+    assert f"const embedOpt = {json.dumps(embed_options or {})}" in html
 
 
 def test_bad_format() -> None:

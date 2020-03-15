@@ -38,14 +38,13 @@ HTML_TEMPLATE = """
 """
 
 EXTRACT_CODE = """
-var spec = arguments[0];
-var mode = arguments[1];
-var scaleFactor = arguments[2];
-var format = arguments[3];
-var done = arguments[4];
+let spec = arguments[0];
+const embedOpt = arguments[1];
+const format = arguments[2];
+const done = arguments[3];
 
 if (format === 'vega') {
-    if (mode === 'vega-lite') {
+    if (embedOpt['mode'] === 'vega-lite') {
         vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
         try {
             const compiled = vegaLite.compile(spec);
@@ -57,10 +56,10 @@ if (format === 'vega') {
     done({result: spec});
 }
 
-vegaEmbed('#vis', spec, {mode}).then(function(result) {
+vegaEmbed('#vis', spec, embedOpt).then(function(result) {
     if (format === 'png') {
         result.view
-            .toCanvas(scaleFactor)
+            .toCanvas()
             .then(function(canvas){return canvas.toDataURL('image/png');})
             .then(result => done({result}))
             .catch(function(err) {
@@ -69,14 +68,14 @@ vegaEmbed('#vis', spec, {mode}).then(function(result) {
             });
     } else if (format === 'svg') {
         result.view
-            .toSVG(scaleFactor)
+            .toSVG()
             .then(result => done({result}))
             .catch(function(err) {
                 console.error(err);
                 done({error: err.toString()});
             });
     } else {
-        error = "Unrecognized format: " + format;
+        const error = "Unrecognized format: " + format;
         console.error(error);
         done({error});
     }
@@ -156,11 +155,11 @@ class SeleniumSaver(Saver):
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
+        embed_options: Optional[JSONDict] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
         driver_timeout: int = 20,
-        scale_factor: float = 1,
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
     ) -> None:
@@ -168,12 +167,11 @@ class SeleniumSaver(Saver):
         self._vegalite_version = vegalite_version
         self._vegaembed_version = vegaembed_version
         self._driver_timeout = driver_timeout
-        self._scale_factor = scale_factor
         self._webdriver = (
             self._select_webdriver(driver_timeout) if webdriver is None else webdriver
         )
         self._offline = offline
-        super().__init__(spec=spec, mode=mode)
+        super().__init__(spec=spec, mode=mode, embed_options=embed_options)
 
     @classmethod
     def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
@@ -256,9 +254,9 @@ class SeleniumSaver(Saver):
                 raise RuntimeError(
                     f"Internet connection required for saving chart as {fmt} with offline=False."
                 )
-        result = driver.execute_async_script(
-            EXTRACT_CODE, self._spec, self._mode, self._scale_factor, fmt
-        )
+        opt = self._embed_options.copy()
+        opt["mode"] = self._mode
+        result = driver.execute_async_script(EXTRACT_CODE, self._spec, opt, fmt)
         if "error" in result:
             raise JavascriptError(result["error"])
         return result["result"]

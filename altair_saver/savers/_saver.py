@@ -23,8 +23,15 @@ class Saver(metaclass=abc.ABCMeta):
     valid_formats: List[str] = []
     _spec: JSONDict
     _mode: str
+    _embed_options: JSONDict
 
-    def __init__(self, spec: JSONDict, mode: Optional[str] = None, **kwargs: Any):
+    def __init__(
+        self,
+        spec: JSONDict,
+        mode: Optional[str] = None,
+        embed_options: Optional[JSONDict] = None,
+        **kwargs: Any,
+    ):
         if kwargs:
             raise ValueError(f"Unhandled keyword arguments: {list(kwargs.keys())}")
         if mode is None:
@@ -33,6 +40,7 @@ class Saver(metaclass=abc.ABCMeta):
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
         self._spec = spec
         self._mode = mode
+        self._embed_options = embed_options or {}
 
     @abc.abstractmethod
     def _mimebundle(self, fmt: str) -> Mimebundle:
