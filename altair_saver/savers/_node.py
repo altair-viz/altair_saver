@@ -2,6 +2,7 @@ import functools
 import json
 import shutil
 from typing import List
+import warnings
 
 from altair_saver.savers import Saver
 from altair_saver._utils import (
@@ -79,6 +80,9 @@ class NodeSaver(Saver):
 
     def _mimebundle(self, fmt: str) -> Mimebundle:
         """Return a mimebundle with a single mimetype."""
+        if self._embed_options:
+            warnings.warn("embed_options are not supported for method='node'.")
+
         if self._mode not in ["vega", "vega-lite"]:
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
