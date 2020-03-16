@@ -35,6 +35,7 @@ def save(
     fp: Union[IO, str],
     fmt: Optional[str] = None,
     mode: Optional[str] = None,
+    embed_options: Optional[JSONDict] = None,
     method: Optional[Union[str, type]] = None,
     **kwargs: Any,
 ) -> None:
@@ -53,6 +54,9 @@ def save(
     mode : string (optional)
         The mode of the input spec. Either "vega-lite" or "vega". If not specified,
         it will be inferred from the spec.
+    embed_options : dict (optional)
+        A dictionary of options to pass to vega-embed. If not specified, the default
+        will be drawn from alt.renderers.options.
     method : string
         The save method to use: either a string, or a subclass of Saver.
     **kwargs :
@@ -72,7 +76,11 @@ def save(
         spec = chart
     else:
         spec = chart.to_dict()
-    saver = Saver(spec, mode=mode, **kwargs)
+
+    if embed_options is None:
+        embed_options = alt.renderers.options.get("embed_options", None)
+
+    saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
 
     saver.save(fp=fp, fmt=fmt)
 
@@ -81,6 +89,7 @@ def render(
     chart: Union[alt.TopLevelMixin, JSONDict],
     fmts: Union[str, Iterable[str]],
     mode: Optional[str] = None,
+    embed_options: Optional[JSONDict] = None,
     method: Optional[Union[str, type]] = None,
     **kwargs: Any,
 ) -> Mimebundle:
@@ -96,6 +105,9 @@ def render(
     mode : string (optional)
         The mode of the input spec. Either "vega-lite" or "vega". If not specified,
         it will be inferred from the spec.
+    embed_options : dict (optional)
+        A dictionary of options to pass to vega-embed. If not specified, the default
+        will be drawn from alt.renderers.options.
     method : string
         The save method to use: either a string, or a Saver class.
     **kwargs :
@@ -112,6 +124,9 @@ def render(
     else:
         spec = chart.to_dict()
 
+    if embed_options is None:
+        embed_options = alt.renderers.options.get("embed_options", None)
+
     for fmt in fmts:
         if method is None:
             Saver = _get_saver_for_format(fmt=fmt)
@@ -122,7 +137,7 @@ def render(
         else:
             raise ValueError(f"Unrecognized method: {method}")
 
-        saver = Saver(spec, mode=mode, **kwargs)
+        saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
         mimebundle.update(saver.mimebundle(fmt))
 
     return mimebundle
