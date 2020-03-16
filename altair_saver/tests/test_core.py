@@ -126,3 +126,36 @@ def test_infer_mode(spec: JSONDict) -> None:
     vl_svg = render(spec, "svg").popitem()[1]
     vg_svg = render(vg_spec, "svg").popitem()[1]
     assert vl_svg == vg_svg
+
+
+@pytest.mark.parametrize("inline", [True, False])
+@pytest.mark.parametrize("embed_options", [{}, {"padding": 20}])
+def test_embed_options_render_html(
+    spec: JSONDict, inline: bool, embed_options: JSONDict
+) -> None:
+    with alt.renderers.set_embed_options(**embed_options):
+        bundle = render(spec, "html", inline=inline)
+    html = bundle.popitem()[1]
+    assert f"const embedOpt = {json.dumps(embed_options or {})};" in html
+
+
+@pytest.mark.parametrize("inline", [True, False])
+@pytest.mark.parametrize("embed_options", [{}, {"padding": 20}])
+def test_embed_options_save_html(
+    spec: JSONDict, inline: bool, embed_options: JSONDict
+) -> None:
+    fp = io.StringIO()
+    with alt.renderers.set_embed_options(**embed_options):
+        save(spec, fp, "html", inline=inline)
+    html = fp.getvalue()
+    assert f"const embedOpt = {json.dumps(embed_options or {})};" in html
+
+
+def test_embed_options_save_html_override(spec: JSONDict) -> None:
+    fp = io.StringIO()
+    embed_options: JSONDict = {"renderer": "svg"}
+    alt_embed_options: JSONDict = {"padding": 20}
+    with alt.renderers.set_embed_options(**alt_embed_options):
+        save(spec, fp, "html", embed_options=embed_options)
+    html = fp.getvalue()
+    assert f"const embedOpt = {json.dumps(embed_options)};" in html
