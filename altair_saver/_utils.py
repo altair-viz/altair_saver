@@ -10,10 +10,10 @@ from typing import Any, Dict, IO, Iterator, List, Optional, Union
 
 import altair as alt
 
-MimebundleContent = Union[str, bytes, dict]
-Mimebundle = Dict[str, MimebundleContent]
 JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONDict = Dict[str, JSON]
+MimebundleContent = Union[str, bytes, JSONDict]
+Mimebundle = Dict[str, MimebundleContent]
 
 
 def internet_connected(test_url: str = "cdn.jsdelivr.net") -> bool:
