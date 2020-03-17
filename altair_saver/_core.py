@@ -57,7 +57,7 @@ def save(
     embed_options : dict (optional)
         A dictionary of options to pass to vega-embed. If not specified, the default
         will be drawn from alt.renderers.options.
-    method : string
+    method : string or type
         The save method to use: either a string, or a subclass of Saver.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
