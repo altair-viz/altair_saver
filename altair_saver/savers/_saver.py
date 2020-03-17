@@ -21,7 +21,7 @@ class Saver(metaclass=abc.ABCMeta):
 
     Subclasses should:
     - specify the valid_formats class attribute
-    - override the _mimebundle() method
+    - override the _serialize() method
     """
 
     # list of supported formats, or (mode, format) pairs.

@@ -1,4 +1,5 @@
-from typing import Any, Dict, IO, Iterable, List, Optional, Type, Union
+from collections import OrderedDict
+from typing import Any, Dict, IO, Iterable, Optional, Type, Union
 
 import altair as alt
 
@@ -16,23 +17,41 @@ from altair_saver._utils import (
     Mimebundle,
 )
 
-METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
+_SAVER_METHODS: Dict[str, Type[Saver]] = OrderedDict(
+    [
+        ("basic", BasicSaver),
+        ("html", HTMLSaver),
+        ("selenium", SeleniumSaver),
+        ("node", NodeSaver),
+    ]
+)
 
 
-def _get_saver(
-    mode: str, fmt: Optional[str] = None, fp: Optional[Union[IO, str]] = None
+def _select_saver(
+    method: Optional[Union[str, Type[Saver]]],
+    mode: str,
+    fmt: Optional[str] = None,
+    fp: Optional[Union[IO, str]] = None,
 ) -> Type[Saver]:
     """Get an enabled Saver class that supports the specified format."""
-    # TODO: allow other savers to be registered.
-    if fmt is None:
-        if fp is None:
-            raise ValueError("Either fmt or fp must be specified")
-        fmt = extract_format(fp)
-    savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, SeleniumSaver, NodeSaver]
-    for s in savers:
-        if s.enabled() and fmt in s.valid_formats[mode]:
-            return s
-    raise ValueError(f"Unsupported format: {fmt!r}")
+    if isinstance(method, type) and issubclass(method, Saver):
+        return method
+    elif isinstance(method, str):
+        if method in _SAVER_METHODS:
+            return _SAVER_METHODS[method]
+        else:
+            raise ValueError(f"Unrecognized method: {method!r}")
+    elif method is None:
+        if fmt is None:
+            if fp is None:
+                raise ValueError("Either fmt or fp must be specified")
+            fmt = extract_format(fp)
+        for s in _SAVER_METHODS.values():
+            if s.enabled() and fmt in s.valid_formats[mode]:
+                return s
+        raise ValueError(f"No enabled saver found that supports format={fmt!r}")
+    else:
+        raise ValueError(f"Unrecognized method: {method}")
 
 
 def save(
@@ -63,7 +82,32 @@ def save(
         A dictionary of options to pass to vega-embed. If not specified, the default
         will be drawn from alt.renderers.options.
     method : string or type
-        The save method to use: either a string, or a subclass of Saver.
+        The save method to use: one of {"node", "selenium", "html", "basic"},
+        or a subclass of Saver.
+
+    Additional Parameters
+    ---------------------
+    vega_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega javascript
+        package to use. Default is alt.VEGA_VERSION.
+    vegalite_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega-lite javascript
+        package to use. Default is alt.VEGALITE_VERSION.
+    vegaembed_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega-embed javascript
+        package to use. Default is alt.VEGAEMBED_VERSION.
+    inline : boolean (optional)
+        For method="html", specify whether javascript sources should be included
+        inline rather than loaded from an external CDN. Default: False.
+    standalone : boolean (optional)
+        For method="html", specify whether to create a standalone HTML file.
+        Default is True for save().
+    webdriver : string or Object (optional)
+        For method="selenium", the type of webdriver to use: one of "chrome", "firefox",
+        or a selenium.WebDriver object. Defaults to what is available on your system.
+    offline : bool (optional)
+        For method="selenium", whether to save charts in offline mode (default=True). If
+        false, saving charts will require a web connection to load Javascript from CDN.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
@@ -76,18 +120,10 @@ def save(
     if mode is None:
         mode = infer_mode_from_spec(spec)
 
-    if method is None:
-        Saver = _get_saver(mode=mode, fmt=fmt, fp=fp)
-    elif isinstance(method, type):
-        Saver = method
-    elif isinstance(method, str) and method in METHOD_DICT:
-        Saver = METHOD_DICT[method]
-    else:
-        raise ValueError(f"Unrecognized method: {method}")
-
     if embed_options is None:
         embed_options = alt.renderers.options.get("embed_options", None)
 
+    Saver = _select_saver(method, mode=mode, fmt=fmt, fp=fp)
     saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
 
     saver.save(fp=fp, fmt=fmt)
@@ -116,8 +152,33 @@ def render(
     embed_options : dict (optional)
         A dictionary of options to pass to vega-embed. If not specified, the default
         will be drawn from alt.renderers.options.
-    method : string
-        The save method to use: either a string, or a Saver class.
+    method : string or type
+        The save method to use: one of {"node", "selenium", "html", "basic"},
+        or a subclass of Saver.
+
+    Additional Parameters
+    ---------------------
+    vega_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega javascript
+        package to use. Default is alt.VEGA_VERSION.
+    vegalite_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega-lite javascript
+        package to use. Default is alt.VEGALITE_VERSION.
+    vegaembed_version : string (optional)
+        For method in {"selenium", "html"}, the version of the vega-embed javascript
+        package to use. Default is alt.VEGAEMBED_VERSION.
+    inline : boolean (optional)
+        For method="html", specify whether javascript sources should be included
+        inline rather than loaded from an external CDN. Default: False.
+    standalone : boolean (optional)
+        For method="html", specify whether to create a standalone HTML file.
+        Default is False for render().
+    webdriver : string or Object (optional)
+        For method="selenium", the type of webdriver to use: one of "chrome", "firefox",
+        or a selenium.WebDriver object. Defaults to what is available on your system.
+    offline : bool (optional)
+        For method="selenium", whether to save charts in offline mode (default=True). If
+        false, saving charts will require a web connection to load Javascript from CDN.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
@@ -138,15 +199,7 @@ def render(
         embed_options = alt.renderers.options.get("embed_options", None)
 
     for fmt in fmts:
-        if method is None:
-            Saver = _get_saver(mode=mode, fmt=fmt)
-        elif isinstance(method, type):
-            Saver = method
-        elif isinstance(method, str) and method in METHOD_DICT:
-            Saver = METHOD_DICT[method]
-        else:
-            raise ValueError(f"Unrecognized method: {method}")
-
+        Saver = _select_saver(method, mode=mode, fmt=fmt)
         saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
         mimebundle.update(saver.mimebundle(fmt))
 
