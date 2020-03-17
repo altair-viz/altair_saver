@@ -24,7 +24,8 @@ class Saver(metaclass=abc.ABCMeta):
     - override the _mimebundle() method
     """
 
-    valid_formats: List[str] = []
+    # list of supported formats, or (mode, format) pairs.
+    valid_formats: Dict[str, List[str]] = {"vega": [], "vega-lite": []}
     _spec: JSONDict
     _mode: str
     _embed_options: JSONDict
@@ -78,9 +79,9 @@ class Saver(metaclass=abc.ABCMeta):
             fmts = [fmts]
         bundle: Mimebundle = {}
         for fmt in fmts:
-            if fmt not in self.valid_formats:
+            if fmt not in self.valid_formats[self._mode]:
                 raise ValueError(
-                    f"invalid fmt={fmt!r}; must be one of {self.valid_formats}."
+                    f"invalid fmt={fmt!r}; must be one of {self.valid_formats[self._mode]}."
                 )
             mimetype = fmt_to_mimetype(
                 fmt,
@@ -104,7 +105,7 @@ class Saver(metaclass=abc.ABCMeta):
         """
         if fmt is None:
             fmt = extract_format(fp)
-        if fmt not in self.valid_formats:
+        if fmt not in self.valid_formats[self._mode]:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 
         content = self._serialize(fmt, "save")

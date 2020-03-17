@@ -1,6 +1,6 @@
 import io
 import json
-from typing import List, Union, Type
+from typing import Dict, List, Union, Type
 
 import altair as alt
 import pandas as pd
@@ -79,7 +79,7 @@ def test_save_chart_method(
     else:
         fp = io.StringIO()
 
-    valid_formats: List[str] = []
+    valid_formats: Dict[str, List[str]] = {}
     if method == "node":
         valid_formats = NodeSaver.valid_formats
     elif method == "selenium":
@@ -89,7 +89,7 @@ def test_save_chart_method(
     else:
         raise ValueError(f"unrecognized method: {method}")
 
-    if fmt not in valid_formats:
+    if fmt not in valid_formats["vega-lite"]:
         with pytest.raises(ValueError):
             save(spec, fp, fmt=fmt, method=method)
     else:

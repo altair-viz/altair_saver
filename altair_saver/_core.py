@@ -9,13 +9,18 @@ from altair_saver.savers import (
     NodeSaver,
     SeleniumSaver,
 )
-from altair_saver._utils import extract_format, JSONDict, Mimebundle
+from altair_saver._utils import (
+    extract_format,
+    infer_mode_from_spec,
+    JSONDict,
+    Mimebundle,
+)
 
 METHOD_DICT: Dict[str, type] = {"selenium": SeleniumSaver, "node": NodeSaver}
 
 
-def _get_saver_for_format(
-    fmt: Optional[str] = None, fp: Optional[Union[IO, str]] = None
+def _get_saver(
+    mode: str, fmt: Optional[str] = None, fp: Optional[Union[IO, str]] = None
 ) -> Type[Saver]:
     """Get an enabled Saver class that supports the specified format."""
     # TODO: allow other savers to be registered.
@@ -25,7 +30,7 @@ def _get_saver_for_format(
         fmt = extract_format(fp)
     savers: List[Type[Saver]] = [BasicSaver, HTMLSaver, SeleniumSaver, NodeSaver]
     for s in savers:
-        if fmt in s.valid_formats and s.enabled():
+        if s.enabled() and fmt in s.valid_formats[mode]:
             return s
     raise ValueError(f"Unsupported format: {fmt!r}")
 
@@ -62,20 +67,23 @@ def save(
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
+    spec: JSONDict = {}
+    if isinstance(chart, dict):
+        spec = chart
+    else:
+        spec = chart.to_dict()
+
+    if mode is None:
+        mode = infer_mode_from_spec(spec)
+
     if method is None:
-        Saver = _get_saver_for_format(fmt=fmt, fp=fp)
+        Saver = _get_saver(mode=mode, fmt=fmt, fp=fp)
     elif isinstance(method, type):
         Saver = method
     elif isinstance(method, str) and method in METHOD_DICT:
         Saver = METHOD_DICT[method]
     else:
         raise ValueError(f"Unrecognized method: {method}")
-
-    spec: JSONDict = {}
-    if isinstance(chart, dict):
-        spec = chart
-    else:
-        spec = chart.to_dict()
 
     if embed_options is None:
         embed_options = alt.renderers.options.get("embed_options", None)
@@ -113,7 +121,6 @@ def render(
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """
-
     if isinstance(fmts, str):
         fmts = [fmts]
     mimebundle: Mimebundle = {}
@@ -124,12 +131,15 @@ def render(
     else:
         spec = chart.to_dict()
 
+    if mode is None:
+        mode = infer_mode_from_spec(spec)
+
     if embed_options is None:
         embed_options = alt.renderers.options.get("embed_options", None)
 
     for fmt in fmts:
         if method is None:
-            Saver = _get_saver_for_format(fmt=fmt)
+            Saver = _get_saver(mode=mode, fmt=fmt)
         elif isinstance(method, type):
             Saver = method
         elif isinstance(method, str) and method in METHOD_DICT:

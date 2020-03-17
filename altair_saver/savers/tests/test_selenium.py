@@ -31,9 +31,14 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
 
 
+def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
+    for mode in ["vega", "vega-lite"]:
+        for fmt in SeleniumSaver.valid_formats[mode]:
+            yield (mode, fmt)
+
+
 @pytest.mark.parametrize("name,data", get_testcases())
-@pytest.mark.parametrize("mode", ["vega", "vega-lite"])
-@pytest.mark.parametrize("fmt", SeleniumSaver.valid_formats)
+@pytest.mark.parametrize("mode, fmt", get_modes_and_formats())
 @pytest.mark.parametrize("offline", [True, False])
 def test_selenium_mimebundle(
     name: str,
