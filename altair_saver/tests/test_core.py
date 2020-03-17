@@ -17,7 +17,7 @@ from altair_saver import (
 )
 from altair_saver._utils import JSONDict, mimetype_to_fmt
 
-FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite"]
+FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite", "json"]
 
 
 def check_output(out: Union[str, bytes], fmt: str) -> None:

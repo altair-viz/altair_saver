@@ -41,6 +41,8 @@ def fmt_to_mimetype(
         )
     elif fmt == "vega":
         return "application/vnd.vega.v{}+json".format(vega_version.split(".")[0])
+    elif fmt == "json":
+        return "application/json"
     elif fmt == "pdf":
         return "application/pdf"
     elif fmt == "html":
@@ -59,6 +61,8 @@ def mimetype_to_fmt(mimetype: str) -> str:
         return "vega-lite"
     elif mimetype.startswith("application/vnd.vega"):
         return "vega"
+    elif mimetype == "application/json":
+        return "json"
     elif mimetype == "application/pdf":
         return "pdf"
     elif mimetype == "text/html":

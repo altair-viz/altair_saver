@@ -7,9 +7,9 @@ from altair_saver._utils import MimebundleContent
 class BasicSaver(Saver):
     """Basic chart output."""
 
-    valid_formats: List[str] = ["vega-lite"]
+    valid_formats: List[str] = ["json", "vega-lite"]
 
     def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
-        if self._mode == "vega":
+        if fmt == "vega-lite" and self._mode == "vega":
             raise ValueError("Cannot save vega spec as vega-lite.")
         return self._spec

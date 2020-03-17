@@ -17,9 +17,10 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
 
 
 @pytest.mark.parametrize("case, spec", get_testcases())
-def test_basic_saver(case: str, spec: Dict[str, Any]) -> None:
+@pytest.mark.parametrize("fmt", ["vega-lite", "json"])
+def test_basic_saver(case: str, spec: Dict[str, Any], fmt: str) -> None:
     saver = BasicSaver(spec)
-    bundle = saver.mimebundle("vega-lite")
+    bundle = saver.mimebundle(fmt)
     assert bundle.popitem()[1] == spec
 
 
