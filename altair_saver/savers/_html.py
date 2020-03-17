@@ -1,11 +1,12 @@
 """An HTML altair saver"""
 import json
-from typing import Dict, List, Optional
+from typing import List, Optional
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle, fmt_to_mimetype
+from altair_saver._utils import JSONDict, MimebundleContent
 from altair_viewer import get_bundled_script
 
+# This is the basic HTML template for embedding charts on a page.
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -25,6 +26,8 @@ HTML_TEMPLATE = """
 </html>
 """
 
+# This is like the basic template, but includes vega javascript inline
+# so that the resulting file is not dependent on external resources.
 INLINE_HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -56,39 +59,38 @@ class HTMLSaver(Saver):
     """Basic chart output."""
 
     valid_formats: List[str] = ["html"]
-    _package_versions: Dict[str, str]
     _inline: bool
-    _embed_options: JSONDict
 
     def __init__(
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
         embed_options: Optional[JSONDict] = None,
-        inline: bool = False,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
+        inline: bool = False,
     ) -> None:
         self._inline = inline
-        self._embed_options = embed_options or {}
-        self._package_versions = {
-            "vega": vega_version,
-            "vega-lite": vegalite_version,
-            "vega-embed": vegaembed_version,
-        }
-        super().__init__(spec=spec, mode=mode, embed_options=embed_options)
+        super().__init__(
+            spec=spec,
+            mode=mode,
+            embed_options=embed_options,
+            vega_version=vega_version,
+            vegalite_version=vegalite_version,
+            vegaembed_version=vegaembed_version,
+        )
 
     def _package_url(self, package: str) -> str:
         return CDN_URL.format(package=package, version=self._package_versions[package])
 
-    def _mimebundle(self, fmt: str) -> Mimebundle:
+    def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
         if fmt not in self.valid_formats:
             raise ValueError(
                 f"Invalid format: {fmt!r}. Must be one of {self.valid_formats}"
             )
         if self._inline:
-            html = INLINE_HTML_TEMPLATE.format(
+            return INLINE_HTML_TEMPLATE.format(
                 spec=json.dumps(self._spec),
                 embed_options=json.dumps(self._embed_options),
                 vega_version=self._package_versions["vega"],
@@ -103,11 +105,10 @@ class HTMLSaver(Saver):
                 ),
             )
         else:
-            html = HTML_TEMPLATE.format(
+            return HTML_TEMPLATE.format(
                 spec=json.dumps(self._spec),
                 embed_options=json.dumps(self._embed_options),
                 vega_url=self._package_url("vega"),
                 vegalite_url=self._package_url("vega-lite"),
                 vegaembed_url=self._package_url("vega-embed"),
             )
-        return {fmt_to_mimetype("html"): html}

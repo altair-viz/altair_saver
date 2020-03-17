@@ -1,12 +1,16 @@
 import abc
 import json
-from typing import Any, IO, Iterable, List, Optional, Union
+from typing import Dict, IO, Iterable, List, Optional, Union
+
+import altair as alt
 
 from altair_saver._utils import (
     extract_format,
+    fmt_to_mimetype,
     infer_mode_from_spec,
     maybe_open,
     Mimebundle,
+    MimebundleContent,
     JSONDict,
 )
 
@@ -24,16 +28,17 @@ class Saver(metaclass=abc.ABCMeta):
     _spec: JSONDict
     _mode: str
     _embed_options: JSONDict
+    _package_versions: Dict[str, str]
 
     def __init__(
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
         embed_options: Optional[JSONDict] = None,
-        **kwargs: Any,
+        vega_version: str = alt.VEGA_VERSION,
+        vegalite_version: str = alt.VEGALITE_VERSION,
+        vegaembed_version: str = alt.VEGAEMBED_VERSION,
     ):
-        if kwargs:
-            raise ValueError(f"Unhandled keyword arguments: {list(kwargs.keys())}")
         if mode is None:
             mode = infer_mode_from_spec(spec)
         if mode not in ["vega", "vega-lite"]:
@@ -41,10 +46,14 @@ class Saver(metaclass=abc.ABCMeta):
         self._spec = spec
         self._mode = mode
         self._embed_options = embed_options or {}
+        self._package_versions = {
+            "vega": vega_version,
+            "vega-lite": vegalite_version,
+            "vega-embed": vegaembed_version,
+        }
 
     @abc.abstractmethod
-    def _mimebundle(self, fmt: str) -> Mimebundle:
-        """Return a mimebundle with a single mimetype."""
+    def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
         pass
 
     @classmethod
@@ -73,7 +82,12 @@ class Saver(metaclass=abc.ABCMeta):
                 raise ValueError(
                     f"invalid fmt={fmt!r}; must be one of {self.valid_formats}."
                 )
-            bundle.update(self._mimebundle(fmt))
+            mimetype = fmt_to_mimetype(
+                fmt,
+                vega_version=self._package_versions["vega"],
+                vegalite_version=self._package_versions["vega-lite"],
+            )
+            bundle[mimetype] = self._serialize(fmt, "mimebundle")
         return bundle
 
     def save(self, fp: Union[IO, str], fmt: Optional[str] = None) -> None:
@@ -93,7 +107,7 @@ class Saver(metaclass=abc.ABCMeta):
         if fmt not in self.valid_formats:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 
-        content = self.mimebundle(fmt).popitem()[1]
+        content = self._serialize(fmt, "save")
         if isinstance(content, dict):
             with maybe_open(fp, "w") as f:
                 json.dump(content, f, indent=2)
