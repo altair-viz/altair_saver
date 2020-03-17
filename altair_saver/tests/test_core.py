@@ -128,15 +128,12 @@ def test_infer_mode(spec: JSONDict) -> None:
     assert vl_svg == vg_svg
 
 
-@pytest.mark.parametrize("inline", [True, False])
 @pytest.mark.parametrize("embed_options", [{}, {"padding": 20}])
-def test_embed_options_render_html(
-    spec: JSONDict, inline: bool, embed_options: JSONDict
-) -> None:
+def test_embed_options_render_html(spec: JSONDict, embed_options: JSONDict) -> None:
     with alt.renderers.set_embed_options(**embed_options):
-        bundle = render(spec, "html", inline=inline)
+        bundle = render(spec, "html")
     html = bundle.popitem()[1]
-    assert f"const embedOpt = {json.dumps(embed_options or {})};" in html
+    assert json.dumps(embed_options or {}) in html
 
 
 @pytest.mark.parametrize("inline", [True, False])
