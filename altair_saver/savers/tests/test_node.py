@@ -28,9 +28,14 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png, "pdf": pdf}
 
 
+def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
+    for mode in ["vega", "vega-lite"]:
+        for fmt in NodeSaver.valid_formats[mode]:
+            yield (mode, fmt)
+
+
 @pytest.mark.parametrize("name,data", get_testcases())
-@pytest.mark.parametrize("mode", ["vega", "vega-lite"])
-@pytest.mark.parametrize("fmt", NodeSaver.valid_formats)
+@pytest.mark.parametrize("mode, fmt", get_modes_and_formats())
 def test_node_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
     saver = NodeSaver(data[mode], mode=mode)
     if mode == "vega" and fmt == "vega-lite":

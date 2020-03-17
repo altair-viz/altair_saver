@@ -146,7 +146,10 @@ class _DriverRegistry:
 class SeleniumSaver(Saver):
     """Save charts using a selenium engine."""
 
-    valid_formats: List[str] = ["png", "svg", "vega"]
+    valid_formats: Dict[str, List[str]] = {
+        "vega": ["png", "svg"],
+        "vega-lite": ["png", "svg", "vega"],
+    }
     _registry: _DriverRegistry = _DriverRegistry()
     _provider: Optional[Provider] = None
     _resources: Dict[str, Resource] = {}

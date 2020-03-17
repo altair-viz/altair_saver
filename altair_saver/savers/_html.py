@@ -1,6 +1,6 @@
 """An HTML altair saver"""
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 import uuid
 import warnings
 
@@ -112,7 +112,7 @@ CDN_URL = "https://cdn.jsdelivr.net/npm/{package}@{version}"
 class HTMLSaver(Saver):
     """Basic chart output."""
 
-    valid_formats: List[str] = ["html"]
+    valid_formats: Dict[str, List[str]] = {"vega": ["html"], "vega-lite": ["html"]}
     _inline: bool
     _standalone: Optional[bool]
 
@@ -142,11 +142,6 @@ class HTMLSaver(Saver):
         return CDN_URL.format(package=package, version=self._package_versions[package])
 
     def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
-        if fmt not in self.valid_formats:
-            raise ValueError(
-                f"Invalid format: {fmt!r}. Must be one of {self.valid_formats}"
-            )
-
         standalone = self._standalone
         if standalone is None:
             standalone = content_type == "save"

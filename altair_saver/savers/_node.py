@@ -1,7 +1,7 @@
 import functools
 import json
 import shutil
-from typing import List
+from typing import Dict, List
 import warnings
 
 from altair_saver.savers import Saver
@@ -68,7 +68,10 @@ def vg2svg(spec: JSONDict) -> str:
 
 class NodeSaver(Saver):
 
-    valid_formats: List[str] = ["pdf", "png", "svg", "vega"]
+    valid_formats: Dict[str, List[str]] = {
+        "vega": ["pdf", "png", "svg"],
+        "vega-lite": ["pdf", "png", "svg", "vega"],
+    }
 
     @classmethod
     def enabled(cls) -> bool:
