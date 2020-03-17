@@ -19,7 +19,7 @@ from altair_saver._utils import (
 @pytest.mark.parametrize(
     "ext,fmt",
     [
-        ("json", "vega-lite"),
+        ("json", "json"),
         ("html", "html"),
         ("png", "png"),
         ("pdf", "pdf"),
@@ -29,7 +29,7 @@ from altair_saver._utils import (
     ],
 )
 @pytest.mark.parametrize("use_filename", [True, False])
-def testextract_format(ext: str, fmt: str, use_filename: bool) -> None:
+def test_extract_format(ext: str, fmt: str, use_filename: bool) -> None:
     if use_filename:
         filename = f"chart.{ext}"
         assert extract_format(filename) == fmt
@@ -39,7 +39,7 @@ def testextract_format(ext: str, fmt: str, use_filename: bool) -> None:
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
-def testmaybe_open_filename(mode: str) -> None:
+def test_maybe_open_filename(mode: str) -> None:
     content_raw = "testing maybe_open with filename\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
@@ -51,7 +51,7 @@ def testmaybe_open_filename(mode: str) -> None:
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
-def testmaybe_open_fileobj(mode: str) -> None:
+def test_maybe_open_fileobj(mode: str) -> None:
     content_raw = "testing maybe_open with file object\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
@@ -62,7 +62,9 @@ def testmaybe_open_fileobj(mode: str) -> None:
         assert fp.read() == content
 
 
-@pytest.mark.parametrize("fmt", ["vega-lite", "vega", "html", "pdf", "png", "svg"])
+@pytest.mark.parametrize(
+    "fmt", ["json", "vega-lite", "vega", "html", "pdf", "png", "svg"]
+)
 def test_fmt_mimetype(fmt: str) -> None:
     mimetype = fmt_to_mimetype(fmt)
     fmt_out = mimetype_to_fmt(mimetype)
