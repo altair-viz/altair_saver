@@ -7,8 +7,7 @@ import warnings
 from altair_saver.savers import Saver
 from altair_saver._utils import (
     JSONDict,
-    Mimebundle,
-    fmt_to_mimetype,
+    MimebundleContent,
     check_output_with_stderr,
 )
 
@@ -78,8 +77,7 @@ class NodeSaver(Saver):
         except ExecutableNotFound:
             return False
 
-    def _mimebundle(self, fmt: str) -> Mimebundle:
-        """Return a mimebundle with a single mimetype."""
+    def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
         if self._embed_options:
             warnings.warn("embed_options are not supported for method='node'.")
 
@@ -87,18 +85,17 @@ class NodeSaver(Saver):
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
         spec = self._spec
-        mimetype = fmt_to_mimetype(fmt)
 
         if self._mode == "vega-lite":
             spec = vl2vg(spec)
 
         if fmt == "vega":
-            return {mimetype: spec}
+            return spec
         elif fmt == "png":
-            return {mimetype: vg2png(spec)}
+            return vg2png(spec)
         elif fmt == "svg":
-            return {mimetype: vg2svg(spec)}
+            return vg2svg(spec)
         elif fmt == "pdf":
-            return {mimetype: vg2pdf(spec)}
+            return vg2pdf(spec)
         else:
             raise ValueError(f"Unrecognized format: {fmt}")

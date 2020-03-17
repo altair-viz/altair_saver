@@ -6,7 +6,7 @@ import warnings
 
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, Mimebundle, MimeType, fmt_to_mimetype
+from altair_saver._utils import JSONDict, MimebundleContent
 
 from altair_data_server import Provider, Resource
 from altair_viewer import get_bundled_script
@@ -163,15 +163,19 @@ class SeleniumSaver(Saver):
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
     ) -> None:
-        self._vega_version = vega_version
-        self._vegalite_version = vegalite_version
-        self._vegaembed_version = vegaembed_version
         self._driver_timeout = driver_timeout
         self._webdriver = (
             self._select_webdriver(driver_timeout) if webdriver is None else webdriver
         )
         self._offline = offline
-        super().__init__(spec=spec, mode=mode, embed_options=embed_options)
+        super().__init__(
+            spec=spec,
+            mode=mode,
+            embed_options=embed_options,
+            vega_version=vega_version,
+            vegalite_version=vegalite_version,
+            vegaembed_version=vegaembed_version,
+        )
 
     @classmethod
     def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
@@ -210,7 +214,7 @@ class SeleniumSaver(Saver):
             cls._provider.stop()
             cls._provider = None
 
-    def _extract(self, fmt: str) -> MimeType:
+    def _extract(self, fmt: str) -> MimebundleContent:
         if fmt == "vega" and self._mode == "vega":
             return self._spec
 
@@ -218,10 +222,12 @@ class SeleniumSaver(Saver):
 
         if self._offline:
             js_resources = {
-                "vega.js": get_bundled_script("vega", self._vega_version),
-                "vega-lite.js": get_bundled_script("vega-lite", self._vegalite_version),
+                "vega.js": get_bundled_script("vega", self._package_versions["vega"]),
+                "vega-lite.js": get_bundled_script(
+                    "vega-lite", self._package_versions["vega-lite"]
+                ),
                 "vega-embed.js": get_bundled_script(
-                    "vega-embed", self._vegaembed_version
+                    "vega-embed", self._package_versions["vega-embed"]
                 ),
             }
             html = HTML_TEMPLATE.format(
@@ -232,12 +238,14 @@ class SeleniumSaver(Saver):
         else:
             js_resources = {}
             html = HTML_TEMPLATE.format(
-                vega_url=CDN_URL.format(package="vega", version=self._vega_version),
+                vega_url=CDN_URL.format(
+                    package="vega", version=self._package_versions["vega"]
+                ),
                 vegalite_url=CDN_URL.format(
-                    package="vega-lite", version=self._vegalite_version
+                    package="vega-lite", version=self._package_versions["vega-lite"]
                 ),
                 vegaembed_url=CDN_URL.format(
-                    package="vega-embed", version=self._vegaembed_version
+                    package="vega-embed", version=self._package_versions["vega-embed"]
                 ),
             )
 
@@ -261,23 +269,14 @@ class SeleniumSaver(Saver):
             raise JavascriptError(result["error"])
         return result["result"]
 
-    def _mimebundle(self, fmt: str) -> Mimebundle:
+    def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
         out = self._extract(fmt)
-        mimetype = fmt_to_mimetype(
-            fmt,
-            vega_version=self._vega_version,
-            vegalite_version=self._vegalite_version,
-        )
-
         if fmt == "png":
             assert isinstance(out, str)
-            assert out.startswith("data:image/png;base64,")
-            return {mimetype: base64.b64decode(out.split(",", 1)[1].encode())}
+            return base64.b64decode(out.split(",", 1)[1].encode())
         elif fmt == "svg":
-            assert isinstance(out, str)
-            return {mimetype: out}
+            return out
         elif fmt == "vega":
-            assert isinstance(out, dict)
-            return {mimetype: out}
+            return out
         else:
             raise ValueError(f"Unrecognized format: {fmt}")
