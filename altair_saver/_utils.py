@@ -153,7 +153,7 @@ def extract_format(fp: Union[IO, str]) -> str:
         raise ValueError(f"Cannot infer format from {fp}")
     if filename.endswith(".vg.json"):
         return "vega"
-    elif filename.endswith(".json"):
+    elif filename.endswith(".vl.json"):
         return "vega-lite"
     else:
         return filename.split(".")[-1]
