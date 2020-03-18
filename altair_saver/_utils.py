@@ -110,15 +110,22 @@ def infer_mode_from_spec(spec: JSONDict) -> str:
 
 
 @contextlib.contextmanager
-def temporary_filename(**kwargs: Any) -> Iterator[str]:
+def temporary_filename(
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
+    text: bool = False,
+) -> Iterator[str]:
     """Create and clean-up a temporary file
 
-    Arguments are the same as those passed to tempfile.mkstemp
+    Arguments are passed directly to tempfile.mkstemp()
 
     We could use tempfile.NamedTemporaryFile here, but that causes issues on
     windows (see https://bugs.python.org/issue14243).
     """
-    filedescriptor, filename = tempfile.mkstemp(**kwargs)
+    filedescriptor, filename = tempfile.mkstemp(
+        suffix=suffix, prefix=prefix, dir=dir, text=text
+    )
     os.close(filedescriptor)
 
     try:
@@ -130,7 +137,7 @@ def temporary_filename(**kwargs: Any) -> Iterator[str]:
 
 @contextlib.contextmanager
 def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
-    """Write to string or file-like object"""
+    """Context manager to write to a file specified by filename or file-like object"""
     if isinstance(fp, str):
         with open(fp, mode) as f:
             yield f
@@ -143,7 +150,7 @@ def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
 
 
 def extract_format(fp: Union[IO, str]) -> str:
-    """Extract the output format from a file or filename."""
+    """Extract the altair_saver output format from a file or filename."""
     filename: Optional[str]
     if isinstance(fp, str):
         filename = fp
@@ -163,6 +170,8 @@ def check_output_with_stderr(
     cmd: Union[str, List[str]], shell: bool = False, input: Optional[bytes] = None
 ) -> bytes:
     """Run a command in a subprocess, printing stderr to sys.stderr.
+
+    Arguments are passed directly to subprocess.run().
 
     This is important because subprocess stderr in notebooks is printed to the
     terminal rather than the notebook.

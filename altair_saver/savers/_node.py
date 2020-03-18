@@ -101,4 +101,4 @@ class NodeSaver(Saver):
         elif fmt == "pdf":
             return vg2pdf(spec)
         else:
-            raise ValueError(f"Unrecognized format: {fmt}")
+            raise ValueError(f"Unrecognized format: {fmt!r}")
