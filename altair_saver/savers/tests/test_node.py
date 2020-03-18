@@ -38,10 +38,6 @@ def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
 @pytest.mark.parametrize("mode, fmt", get_modes_and_formats())
 def test_node_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
     saver = NodeSaver(data[mode], mode=mode)
-    if mode == "vega" and fmt == "vega-lite":
-        with pytest.raises(ValueError):
-            out = saver.mimebundle(fmt).popitem()[1]
-        return
     out = saver.mimebundle(fmt).popitem()[1]
     if fmt == "png":
         assert isinstance(out, bytes)
@@ -65,6 +61,15 @@ def test_node_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
         assert out.startswith("<svg")
     else:
         assert out == data[fmt]
+
+
+@pytest.mark.parametrize("name,data", get_testcases())
+def test_node_mimebundle_fail(name: str, data: Any) -> None:
+    fmt = "vega-lite"
+    mode = "vega"
+    saver = NodeSaver(data[mode], mode=mode)
+    with pytest.raises(ValueError):
+        saver.mimebundle(fmt)
 
 
 def test_enabled() -> None:

@@ -15,7 +15,7 @@ from altair_saver import (
     Saver,
     SeleniumSaver,
 )
-from altair_saver._utils import JSONDict, mimetype_to_fmt
+from altair_saver._utils import JSONDict, mimetype_to_fmt, temporary_filename
 
 FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite", "json"]
 
@@ -156,3 +156,12 @@ def test_embed_options_save_html_override(spec: JSONDict) -> None:
         save(spec, fp, "html", embed_options=embed_options)
     html = fp.getvalue()
     assert f"const embedOpt = {json.dumps(embed_options)};" in html
+
+
+def test_infer_format(spec: JSONDict) -> None:
+    with temporary_filename(suffix=".html") as filename:
+        with open(filename, "w") as fp:
+            save(spec, fp)
+        with open(filename, "r") as fp:
+            html = fp.read()
+    assert html.strip().startswith("<!DOCTYPE html>")

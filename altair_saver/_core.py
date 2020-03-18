@@ -33,7 +33,27 @@ def _select_saver(
     fmt: Optional[str] = None,
     fp: Optional[Union[IO, str]] = None,
 ) -> Type[Saver]:
-    """Get an enabled Saver class that supports the specified format."""
+    """Get an enabled Saver class that supports the specified format.
+
+    Parameters
+    ----------
+    method : string or Saver class or None
+        The saver class to use. If None, the saver class will be chosen
+        automatically.
+    mode : string
+        One of "vega" or "vega-lite".
+    fmt : string, optional
+        The format to which the spec will be saved. If not specified, it
+        is inferred from `fp`.
+    fp : string or file-like object, optional
+        Only referenced if fmt is None. The name is used to infer the format
+        if possible.
+
+    Returns
+    -------
+    Saver : Saver class
+        The Saver subclass that implements the desired operation.
+    """
     if isinstance(method, type) and issubclass(method, Saver):
         return method
     elif isinstance(method, str):
@@ -71,7 +91,7 @@ def save(
         The chart or Vega/Vega-Lite chart specification to be saved
     fp : file or filename
         location to save the result.
-    fmt : string (optinoal)
+    fmt : string (optional)
         The format in which to save the chart. If not specified and fp is a string,
         fmt will be determined from the file extension. Options are
         ["html", "pdf", "png", "svg", "vega", "vega-lite"].
@@ -138,6 +158,10 @@ def render(
     **kwargs: Any,
 ) -> Mimebundle:
     """Render a chart, returning a mimebundle.
+
+    This implements an Altair renderer entry-point, enabled via::
+
+        alt.renderers.enable("altair_saver")
 
     Parameters
     ----------

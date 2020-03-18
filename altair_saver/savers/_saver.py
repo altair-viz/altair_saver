@@ -55,7 +55,7 @@ class Saver(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
-        pass
+        ...
 
     @classmethod
     def enabled(cls) -> bool:
