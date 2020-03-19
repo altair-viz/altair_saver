@@ -15,7 +15,12 @@ from altair_saver import (
     Saver,
     SeleniumSaver,
 )
-from altair_saver._utils import JSONDict, mimetype_to_fmt, temporary_filename
+from altair_saver._utils import (
+    JSONDict,
+    fmt_to_mimetype,
+    mimetype_to_fmt,
+    temporary_filename,
+)
 
 FORMATS = ["html", "pdf", "png", "svg", "vega", "vega-lite", "json"]
 
@@ -52,7 +57,8 @@ def test_save_chart(chart: alt.TopLevelMixin, fmt: str) -> None:
     else:
         fp = io.StringIO()
 
-    save(chart, fp, fmt=fmt)
+    result = save(chart, fp, fmt=fmt)
+    assert result is None
     check_output(fp.getvalue(), fmt)
 
 
@@ -64,8 +70,17 @@ def test_save_spec(spec: JSONDict, fmt: str) -> None:
     else:
         fp = io.StringIO()
 
-    save(spec, fp, fmt=fmt)
+    result = save(spec, fp, fmt=fmt)
+    assert result is None
     check_output(fp.getvalue(), fmt)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_save_return_value(spec: JSONDict, fmt: str) -> None:
+    fp: Union[io.BytesIO, io.StringIO]
+    result = save(spec, fmt=fmt)
+    assert result is not None
+    check_output(result, fmt)
 
 
 @pytest.mark.parametrize("method", ["node", "selenium", BasicSaver, HTMLSaver])
@@ -122,17 +137,23 @@ def test_render_spec(spec: JSONDict) -> None:
 
 
 def test_infer_mode(spec: JSONDict) -> None:
-    vg_spec = render(spec, "vega").popitem()[1]
-    vl_svg = render(spec, "svg").popitem()[1]
-    vg_svg = render(vg_spec, "svg").popitem()[1]
+    mimetype, vg_spec = render(spec, "vega").popitem()
+    assert mimetype == fmt_to_mimetype("vega")
+
+    mimetype, vl_svg = render(spec, "svg").popitem()
+    assert mimetype == fmt_to_mimetype("svg")
+
+    mimetype, vg_svg = render(vg_spec, "svg").popitem()
+    assert mimetype == fmt_to_mimetype("svg")
+
     assert vl_svg == vg_svg
 
 
 @pytest.mark.parametrize("embed_options", [{}, {"padding": 20}])
 def test_embed_options_render_html(spec: JSONDict, embed_options: JSONDict) -> None:
     with alt.renderers.set_embed_options(**embed_options):
-        bundle = render(spec, "html")
-    html = bundle.popitem()[1]
+        mimetype, html = render(spec, "html").popitem()
+    assert mimetype == "text/html"
     assert json.dumps(embed_options or {}) in html
 
 

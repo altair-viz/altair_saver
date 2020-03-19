@@ -8,6 +8,7 @@ from PyPDF2 import PdfFileReader
 import pytest
 
 from altair_saver.savers import NodeSaver
+from altair_saver._utils import fmt_to_mimetype
 
 
 def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
@@ -38,7 +39,8 @@ def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
 @pytest.mark.parametrize("mode, fmt", get_modes_and_formats())
 def test_node_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
     saver = NodeSaver(data[mode], mode=mode)
-    out = saver.mimebundle(fmt).popitem()[1]
+    mimetype, out = saver.mimebundle(fmt).popitem()
+    assert mimetype == fmt_to_mimetype(fmt)
     if fmt == "png":
         assert isinstance(out, bytes)
         im = Image.open(io.BytesIO(out))

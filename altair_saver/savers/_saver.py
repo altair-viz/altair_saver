@@ -91,24 +91,39 @@ class Saver(metaclass=abc.ABCMeta):
             bundle[mimetype] = self._serialize(fmt, "mimebundle")
         return bundle
 
-    def save(self, fp: Union[IO, str], fmt: Optional[str] = None) -> None:
+    def save(
+        self, fp: Optional[Union[IO, str]] = None, fmt: Optional[str] = None
+    ) -> Optional[Union[str, bytes]]:
         """Save a chart to file
 
         Parameters
         ----------
-        fp : file or filename
+        fp : file or filename (optional)
             Location to save the result. For fmt in ["png", "pdf"], file must be binary.
-            For fmt in ["svg", "vega", "vega-lite"], file must be text.
-        fmt : string
+            For fmt in ["svg", "vega", "vega-lite"], file must be text. If not specified,
+            the serialized chart will be returned.
+        fmt : string (optional)
             The format in which to save the chart. If not specified and fp is a string,
             fmt will be determined from the file extension.
+
+        Returns
+        -------
+        chart : string, bytes, or None
+            If fp is None, the serialized chart is returned.
+            If fp is specified, the return value is None.
         """
         if fmt is None:
+            if fp is None:
+                raise ValueError("Must specify either `fp` or `fmt` when saving chart")
             fmt = extract_format(fp)
         if fmt not in self.valid_formats[self._mode]:
             raise ValueError(f"Got fmt={fmt}; expected one of {self.valid_formats}")
 
         content = self._serialize(fmt, "save")
+        if fp is None:
+            if isinstance(content, dict):
+                return json.dumps(content)
+            return content
         if isinstance(content, dict):
             with maybe_open(fp, "w") as f:
                 json.dump(content, f, indent=2)
@@ -122,3 +137,4 @@ class Saver(metaclass=abc.ABCMeta):
             raise ValueError(
                 f"Unrecognized content type: {type(content)} for fmt={fmt!r}"
             )
+        return None
