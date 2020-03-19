@@ -80,7 +80,7 @@ def save(
     fmt: Optional[str] = None,
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
-    method: Optional[Union[str, type]] = None,
+    method: Optional[Union[str, Type[Saver]]] = None,
     **kwargs: Any,
 ) -> Optional[Union[str, bytes]]:
     """Save an Altair, Vega, or Vega-Lite chart
@@ -165,7 +165,7 @@ def render(
     fmts: Union[str, Iterable[str]],
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
-    method: Optional[Union[str, type]] = None,
+    method: Optional[Union[str, Type[Saver]]] = None,
     **kwargs: Any,
 ) -> Mimebundle:
     """Render a chart, returning a mimebundle.
