@@ -4,6 +4,7 @@
 
 ### Behavior changes
 
+- ``save()`` now returns the serialized chart if ``fp`` is not specified (#41).
 - ``fmt="json"`` now saves the input spec directly for both vega and vega-lite input.
   Additionally, the ``json`` format in ``render()`` outputs a JSON mimetype rather than
   a vega-lite mimetype (#34).

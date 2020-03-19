@@ -76,13 +76,13 @@ def _select_saver(
 
 def save(
     chart: Union[alt.TopLevelMixin, JSONDict],
-    fp: Union[IO, str],
+    fp: Optional[Union[IO, str]] = None,
     fmt: Optional[str] = None,
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
     method: Optional[Union[str, type]] = None,
     **kwargs: Any,
-) -> None:
+) -> Optional[Union[str, bytes]]:
     """Save an Altair, Vega, or Vega-Lite chart
 
     Parameters
@@ -90,7 +90,9 @@ def save(
     chart : alt.Chart or dict
         The chart or Vega/Vega-Lite chart specification to be saved
     fp : file or filename
-        location to save the result.
+        location to save the result. For fmt in ["png", "pdf"], file must be binary.
+        For fmt in ["svg", "vega", "vega-lite"], file must be text. If not specified,
+        the serialized chart will be returned.
     fmt : string (optional)
         The format in which to save the chart. If not specified and fp is a string,
         fmt will be determined from the file extension. Options are
@@ -133,6 +135,12 @@ def save(
         value is overridden by embed_options["scaleFactor"] when both are specified.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
+
+    Returns
+    -------
+    chart : string, bytes, or None
+        If fp is None, the serialized chart is returned.
+        If fp is specified, the return value is None.
     """
     spec: JSONDict = {}
     if isinstance(chart, dict):
@@ -149,7 +157,7 @@ def save(
     Saver = _select_saver(method, mode=mode, fmt=fmt, fp=fp)
     saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
 
-    saver.save(fp=fp, fmt=fmt)
+    return saver.save(fp=fp, fmt=fmt)
 
 
 def render(

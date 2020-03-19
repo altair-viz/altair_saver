@@ -10,7 +10,7 @@ import pytest
 from PIL import Image
 
 from altair_saver.savers import SeleniumSaver, JavascriptError
-from altair_saver._utils import internet_connected, JSONDict
+from altair_saver._utils import fmt_to_mimetype, internet_connected, JSONDict
 
 
 class _SVGImage:
@@ -78,9 +78,10 @@ def test_selenium_mimebundle(
     saver = SeleniumSaver(data[mode], mode=mode, offline=offline)
     if mode == "vega" and fmt == "vega-lite":
         with pytest.raises(ValueError):
-            out = saver.mimebundle(fmt).popitem()[1]
+            saver.mimebundle(fmt)
         return
-    out = saver.mimebundle(fmt).popitem()[1]
+    mimetype, out = saver.mimebundle(fmt).popitem()
+    assert mimetype == fmt_to_mimetype(fmt)
     if fmt == "png":
         assert isinstance(out, bytes)
         im = Image.open(io.BytesIO(out))
@@ -134,10 +135,10 @@ def test_extract_error() -> None:
 )
 def test_scale_factor(spec: JSONDict, fmt: str, kwds: Dict[str, Any]) -> None:
     saver1 = SeleniumSaver(spec)
-    out1 = saver1.mimebundle(fmt).popitem()[1]
+    out1 = saver1.save(fmt=fmt)
 
     saver2 = SeleniumSaver(spec, **kwds)
-    out2 = saver2.mimebundle(fmt).popitem()[1]
+    out2 = saver2.save(fmt=fmt)
 
     if fmt == "png":
         assert isinstance(out1, bytes)
