@@ -44,7 +44,7 @@ const format = arguments[2];
 const done = arguments[3];
 
 if (format === 'vega') {
-    if (embedOpt['mode'] === 'vega-lite') {
+    if (embedOpt.mode === 'vega-lite') {
         vegaLite = (typeof vegaLite === "undefined") ? vl : vegaLite;
         try {
             const compiled = vegaLite.compile(spec);
@@ -59,7 +59,7 @@ if (format === 'vega') {
 vegaEmbed('#vis', spec, embedOpt).then(function(result) {
     if (format === 'png') {
         result.view
-            .toCanvas()
+            .toCanvas(embedOpt.scaleFactor || 1)
             .then(function(canvas){return canvas.toDataURL('image/png');})
             .then(result => done({result}))
             .catch(function(err) {
@@ -68,7 +68,7 @@ vegaEmbed('#vis', spec, embedOpt).then(function(result) {
             });
     } else if (format === 'svg') {
         result.view
-            .toSVG()
+            .toSVG(embedOpt.scaleFactor || 1)
             .then(result => done({result}))
             .catch(function(err) {
                 console.error(err);
@@ -165,12 +165,16 @@ class SeleniumSaver(Saver):
         driver_timeout: int = 20,
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
+        scale_factor: Optional[float] = 1,
     ) -> None:
         self._driver_timeout = driver_timeout
         self._webdriver = (
             self._select_webdriver(driver_timeout) if webdriver is None else webdriver
         )
         self._offline = offline
+        if scale_factor != 1:
+            embed_options = embed_options or {}
+            embed_options.setdefault("scaleFactor", scale_factor)
         super().__init__(
             spec=spec,
             mode=mode,

@@ -128,6 +128,9 @@ def save(
     offline : bool (optional)
         For method="selenium", whether to save charts in offline mode (default=True). If
         false, saving charts will require a web connection to load Javascript from CDN.
+    scale_factor : integer (optional)
+        For method="selenium", scale saved image by this factor (default=1). This parameter
+        value is overridden by embed_options["scaleFactor"] when both are specified.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
     """

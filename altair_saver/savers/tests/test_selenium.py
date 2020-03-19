@@ -2,12 +2,31 @@ import io
 import json
 import os
 from typing import Any, Dict, IO, Iterator, Tuple
+from xml.dom import minidom
 
+import altair as alt
+import pandas as pd
 import pytest
 from PIL import Image
 
 from altair_saver.savers import SeleniumSaver, JavascriptError
-from altair_saver._utils import internet_connected
+from altair_saver._utils import internet_connected, JSONDict
+
+
+class _SVGImage:
+    _svg: minidom.Element
+
+    def __init__(self, svg_string: str):
+        parsed = minidom.parseString(svg_string)
+        self._svg = parsed.getElementsByTagName("svg")[0]
+
+    @property
+    def width(self) -> int:
+        return int(self._svg.getAttribute("width"))
+
+    @property
+    def height(self) -> int:
+        return int(self._svg.getAttribute("height"))
 
 
 @pytest.fixture(scope="module")
@@ -29,6 +48,12 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         with open(os.path.join(directory, f"{case}.png"), "rb") as f:
             png = f.read()
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png}
+
+
+@pytest.fixture
+def spec() -> JSONDict:
+    data = pd.DataFrame({"x": range(10), "y": range(10)})
+    return alt.Chart(data).mark_line().encode(x="x", y="y").to_dict()
 
 
 def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
@@ -96,3 +121,41 @@ def test_extract_error() -> None:
     with pytest.raises(JavascriptError) as err:
         saver._extract("xxx")
     assert "Unrecognized format" in str(err.value)
+
+
+@pytest.mark.parametrize("fmt", ["png", "svg"])
+@pytest.mark.parametrize(
+    "kwds",
+    [
+        {"scale_factor": 2},
+        {"embed_options": {"scaleFactor": 2}},
+        {"scale_factor": 3, "embed_options": {"scaleFactor": 2}},
+    ],
+)
+def test_scale_factor(spec: JSONDict, fmt: str, kwds: Dict[str, Any]) -> None:
+    saver1 = SeleniumSaver(spec)
+    out1 = saver1.mimebundle(fmt).popitem()[1]
+
+    saver2 = SeleniumSaver(spec, **kwds)
+    out2 = saver2.mimebundle(fmt).popitem()[1]
+
+    if fmt == "png":
+        assert isinstance(out1, bytes)
+        im1 = Image.open(io.BytesIO(out1))
+        assert im1.format == "PNG"
+
+        assert isinstance(out2, bytes)
+        im2 = Image.open(io.BytesIO(out2))
+        assert im2.format == "PNG"
+
+        assert im2.size[0] == 2 * im1.size[0]
+        assert im2.size[1] == 2 * im1.size[1]
+    else:
+        assert isinstance(out1, str)
+        im1 = _SVGImage(out1)
+
+        assert isinstance(out2, str)
+        im2 = _SVGImage(out2)
+
+        assert im2.width == 2 * im1.width
+        assert im2.height == 2 * im1.height
