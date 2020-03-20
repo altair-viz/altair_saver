@@ -1,5 +1,7 @@
 # Altair Saver Change Log
 
+## Version 0.4.0 (unreleased)
+
 ## Version 0.3.1
 
 - Fix bug in detecting npm binary path (#42)
