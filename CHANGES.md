@@ -2,6 +2,9 @@
 
 ## Version 0.4.0 (unreleased)
 
+- Added top-level ``available_formats()`` function, which returns the set of
+  available formats. (#43)
+
 ## Version 0.3.1
 
 - Fix bug in detecting npm binary path (#42)

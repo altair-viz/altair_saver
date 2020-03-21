@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Dict, IO, Iterable, Optional, Type, Union
+from typing import Any, Dict, IO, Iterable, Optional, Set, Type, Union
 
 import altair as alt
 
@@ -239,3 +239,24 @@ def render(
         mimebundle.update(saver.mimebundle(fmt))
 
     return mimebundle
+
+
+def available_formats(mode: str = "vega-lite") -> Set[str]:
+    """Return the set of available formats.
+
+    Parameters
+    ----------
+    mode : str
+        The kind of input; one of "vega", "vega-lite"
+
+    Returns
+    -------
+    formats : set of strings
+        Formats available in the current session.
+    """
+    valid_modes = {"vega", "vega-lite"}
+    if mode not in valid_modes:
+        raise ValueError(f"Invalid mode: {mode!r}. Must be one of {valid_modes!r}")
+    return set.union(
+        *(set(s.valid_formats[mode]) for s in _SAVER_METHODS.values() if s.enabled())
+    )

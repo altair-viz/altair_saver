@@ -1,12 +1,13 @@
 import io
 import json
-from typing import Dict, List, Union, Type
+from typing import Any, Dict, List, Union, Type
 
 import altair as alt
 import pandas as pd
 import pytest
 
 from altair_saver import (
+    available_formats,
     save,
     render,
     BasicSaver,
@@ -186,3 +187,19 @@ def test_infer_format(spec: JSONDict) -> None:
         with open(filename, "r") as fp:
             html = fp.read()
     assert html.strip().startswith("<!DOCTYPE html>")
+
+
+@pytest.mark.parametrize("mode", ["vega", "vega-lite"])
+def test_available_formats(monkeypatch: Any, mode: str) -> None:
+    monkeypatch.setattr(NodeSaver, "enabled", lambda: False)
+    monkeypatch.setattr(SeleniumSaver, "enabled", lambda: False)
+    expected = {mode, "json", "html"}
+    assert available_formats(mode) == expected
+
+    monkeypatch.setattr(SeleniumSaver, "enabled", lambda: True)
+    expected |= {"vega", "png", "svg"}
+    assert available_formats(mode) == expected
+
+    monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
+    expected |= {"pdf"}
+    assert available_formats(mode) == expected
