@@ -11,7 +11,7 @@ import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
-from altair_saver._types import JSONDict, MimebundleContent
+from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver.savers import Saver
 
 

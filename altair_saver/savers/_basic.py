@@ -1,7 +1,7 @@
 """A basic vega-lite saver"""
 from typing import Dict, List
 
-from altair_saver._types import MimebundleContent
+from altair_saver.types import MimebundleContent
 from altair_saver.savers import Saver
 
 

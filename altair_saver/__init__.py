@@ -8,16 +8,18 @@ from altair_saver.savers import (
     NodeSaver,
     SeleniumSaver,
 )
+from altair_saver import types
 
 __version__ = "0.4.0.dev0"
 __all__ = [
     "available_formats",
     "render",
     "save",
-    "Saver",
+    "types",
     "BasicSaver",
     "HTMLSaver",
     "JavascriptError",
     "NodeSaver",
+    "Saver",
     "SeleniumSaver",
 ]
