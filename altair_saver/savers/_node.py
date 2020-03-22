@@ -4,9 +4,9 @@ import shutil
 from typing import Dict, List
 import warnings
 
-from altair_saver.savers import Saver
 from altair_saver._types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
+from altair_saver.savers import Saver
 
 
 class ExecutableNotFound(RuntimeError):

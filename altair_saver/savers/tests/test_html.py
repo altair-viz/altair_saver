@@ -9,8 +9,8 @@ import pytest
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from altair_saver import HTMLSaver
 from altair_saver._utils import internet_connected
-from altair_saver.savers import HTMLSaver
 
 
 CDN_URL = "https://cdn.jsdelivr.net"
