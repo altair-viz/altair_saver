@@ -17,7 +17,7 @@ from altair_saver import (
     SeleniumSaver,
 )
 from altair_saver._core import _select_saver
-from altair_saver._types import JSONDict
+from altair_saver.types import JSONDict
 from altair_saver._utils import (
     fmt_to_mimetype,
     mimetype_to_fmt,

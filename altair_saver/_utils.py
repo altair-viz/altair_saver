@@ -10,7 +10,7 @@ from typing import IO, Iterator, List, Optional, Union
 
 import altair as alt
 
-from altair_saver._types import JSONDict
+from altair_saver.types import JSONDict
 
 
 def internet_connected(test_url: str = "cdn.jsdelivr.net") -> bool:

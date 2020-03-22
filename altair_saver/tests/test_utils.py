@@ -7,7 +7,7 @@ import tempfile
 import pytest
 from _pytest.capture import SysCaptureBinary
 
-from altair_saver._types import JSONDict
+from altair_saver.types import JSONDict
 from altair_saver._utils import (
     extract_format,
     fmt_to_mimetype,
