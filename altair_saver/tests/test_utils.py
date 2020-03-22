@@ -1,19 +1,33 @@
+import http
+import io
+import socket
 import subprocess
 import tempfile
 
 import pytest
 from _pytest.capture import SysCaptureBinary
 
+from altair_saver._types import JSONDict
 from altair_saver._utils import (
     extract_format,
     fmt_to_mimetype,
-    JSONDict,
     infer_mode_from_spec,
+    internet_connected,
     maybe_open,
     mimetype_to_fmt,
     temporary_filename,
     check_output_with_stderr,
 )
+
+
+@pytest.mark.parametrize("connected", [True, False])
+def test_internet_connected(monkeypatch, connected: bool) -> None:
+    def request(*args, **kwargs):
+        if not connected:
+            raise socket.gaierror("error")
+
+    monkeypatch.setattr(http.client.HTTPConnection, "request", request)
+    assert internet_connected() is connected
 
 
 @pytest.mark.parametrize(
@@ -36,6 +50,13 @@ def test_extract_format(ext: str, fmt: str, use_filename: bool) -> None:
     else:
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
             assert extract_format(fp) == fmt
+
+
+def test_extract_format_failure() -> None:
+    fp = io.StringIO()
+    with pytest.raises(ValueError) as err:
+        extract_format(fp)
+    assert f"Cannot infer format from {fp}" in str(err.value)
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
@@ -62,6 +83,20 @@ def test_maybe_open_fileobj(mode: str) -> None:
         assert fp.read() == content
 
 
+def test_maybe_open_errors() -> None:
+    with pytest.raises(ValueError) as err:
+        with maybe_open(io.BytesIO(), "w"):
+            pass
+    assert "fp is opened in binary mode" in str(err.value)
+    assert "mode='w'" in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        with maybe_open(io.StringIO(), "wb"):
+            pass
+    assert "fp is opened in text mode" in str(err.value)
+    assert "mode='wb'" in str(err.value)
+
+
 @pytest.mark.parametrize(
     "fmt", ["json", "vega-lite", "vega", "html", "pdf", "png", "svg"]
 )
@@ -71,13 +106,25 @@ def test_fmt_mimetype(fmt: str) -> None:
     assert fmt == fmt_out
 
 
+def test_fmt_mimetype_error() -> None:
+    with pytest.raises(ValueError) as err:
+        fmt_to_mimetype("bad-fmt")
+    assert "Unrecognized fmt='bad-fmt'" in str(err.value)
+
+    with pytest.raises(ValueError) as err:
+        mimetype_to_fmt("bad-mimetype")
+    assert "Unrecognized mimetype='bad-mimetype'" in str(err.value)
+
+
 @pytest.mark.parametrize(
     "mode, spec",
     [
         ("vega-lite", {"$schema": "https://vega.github.io/schema/vega-lite/v4.json"}),
+        ("vega-lite", {"$schema": None, "data": {}, "mark": {}, "encodings": {}}),
         ("vega-lite", {"data": {}, "mark": {}, "encodings": {}}),
         ("vega-lite", {}),
         ("vega", {"$schema": "https://vega.github.io/schema/vega/v5.json"}),
+        ("vega", {"$schema": None, "data": [], "signals": [], "marks": []}),
         ("vega", {"data": [], "signals": [], "marks": []}),
     ],
 )

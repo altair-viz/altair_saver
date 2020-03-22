@@ -138,9 +138,13 @@ def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
         with open(fp, mode) as f:
             yield f
     elif isinstance(fp, io.TextIOBase) and "b" in mode:
-        raise ValueError("File expected to be opened in binary mode.")
+        raise ValueError(
+            f"fp is opened in text mode; mode={mode!r} requires binary mode."
+        )
     elif isinstance(fp, io.BufferedIOBase) and "b" not in mode:
-        raise ValueError("File expected to be opened in text mode")
+        raise ValueError(
+            f"fp is opened in binary mode; mode={mode!r} requires text mode."
+        )
     else:
         yield fp
 
