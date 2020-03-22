@@ -85,7 +85,7 @@ def save(
     ----------
     chart : alt.Chart or dict
         The chart or Vega/Vega-Lite chart specification to be saved
-    fp : file or filename
+    fp : file or filename (optional)
         location to save the result. For fmt in ["png", "pdf"], file must be binary.
         For fmt in ["svg", "vega", "vega-lite"], file must be text. If not specified,
         the serialized chart will be returned.
@@ -250,7 +250,7 @@ def available_formats(mode: str = "vega-lite") -> Set[str]:
     formats : set of strings
         Formats available in the current session.
     """
-    valid_modes = {"vega", "vega-lite"}
+    valid_modes = ("vega", "vega-lite")
     if mode not in valid_modes:
         raise ValueError(f"Invalid mode: {mode!r}. Must be one of {valid_modes!r}")
     return set.union(

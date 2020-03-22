@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Any, Dict, List, Union, Type
+from typing import Any, Dict, List, Optional, Union, Type
 
 import altair as alt
 import pandas as pd
@@ -16,8 +16,9 @@ from altair_saver import (
     Saver,
     SeleniumSaver,
 )
+from altair_saver._core import _select_saver
+from altair_saver._types import JSONDict
 from altair_saver._utils import (
-    JSONDict,
     fmt_to_mimetype,
     mimetype_to_fmt,
     temporary_filename,
@@ -37,6 +38,58 @@ def check_output(out: Union[str, bytes], fmt: str) -> None:
     else:
         assert isinstance(out, str)
     assert len(out) > 0
+
+
+@pytest.mark.parametrize(
+    "method,saver",
+    [
+        ("basic", BasicSaver),
+        ("html", HTMLSaver),
+        ("node", NodeSaver),
+        ("selenium", SeleniumSaver),
+    ],
+)
+def test_select_saver_by_method(method: str, saver: Type[Saver]):
+    assert saver is _select_saver(method=method, mode="vega-lite")
+
+
+@pytest.mark.parametrize(
+    "mode, fmt, saver",
+    [
+        ("vega-lite", "json", BasicSaver),
+        ("vega-lite", "vega-lite", BasicSaver),
+        ("vega-lite", "html", HTMLSaver),
+        ("vega-lite", "png", SeleniumSaver),
+        ("vega-lite", "pdf", NodeSaver),
+        ("vega", "json", BasicSaver),
+        ("vega", "vega", BasicSaver),
+        ("vega", "html", HTMLSaver),
+        ("vega", "png", SeleniumSaver),
+        ("vega", "pdf", NodeSaver),
+    ],
+)
+def test_select_saver_infer_method(
+    monkeypatch: Any, mode: str, fmt: str, saver: Type[Saver]
+):
+    monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
+    monkeypatch.setattr(SeleniumSaver, "enabled", lambda: True)
+
+    assert saver is _select_saver(method=None, mode=mode, fmt=fmt)
+
+
+@pytest.mark.parametrize(
+    "method,fmt,errtext",
+    [
+        ("badmethod", "png", "Unrecognized method: 'badmethod'"),
+        (None, None, "Either fmt or fp must be specified"),
+        (None, "jpg", "No enabled saver found that supports format='jpg'"),
+        (4, None, "Unrecognized method: 4"),
+    ],
+)
+def test_select_saver_errors(method: Optional[str], fmt: Optional[str], errtext: str):
+    with pytest.raises(ValueError) as err:
+        _select_saver(mode="vega-lite", method=method, fmt=fmt)
+    assert errtext in str(err.value)
 
 
 @pytest.fixture
@@ -126,6 +179,17 @@ def test_html_inline(spec: JSONDict, inline: bool) -> None:
         assert cdn_url in html
 
 
+def test_render_chart(chart: alt.TopLevelMixin) -> None:
+    bundle = render(chart, fmts=FORMATS)
+    assert len(bundle) == len(FORMATS)
+    for mimetype, content in bundle.items():
+        fmt = mimetype_to_fmt(mimetype)
+        if isinstance(content, dict):
+            check_output(json.dumps(content), fmt)
+        else:
+            check_output(content, fmt)
+
+
 def test_render_spec(spec: JSONDict) -> None:
     bundle = render(spec, fmts=FORMATS)
     assert len(bundle) == len(FORMATS)
@@ -203,3 +267,10 @@ def test_available_formats(monkeypatch: Any, mode: str) -> None:
     monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
     expected |= {"pdf"}
     assert available_formats(mode) == expected
+
+
+def test_available_formats_error():
+    message = "Invalid mode: 'bad-mode'. Must be one of ('vega', 'vega-lite')"
+    with pytest.raises(ValueError) as err:
+        available_formats("bad-mode")
+    assert message in str(err.value)

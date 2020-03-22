@@ -144,10 +144,7 @@ def test_check_output_with_stderr(capsysbinary: SysCaptureBinary):
 
 def test_check_output_with_stderr_exit_1(capsysbinary: SysCaptureBinary):
     with pytest.raises(subprocess.CalledProcessError) as err:
-        output = check_output_with_stderr(
-            r'>&2 echo "the error" && echo "the output" && exit 1', shell=True
-        )
-        assert output == b"the output\n"
+        check_output_with_stderr(r'>&2 echo "the error" && exit 1', shell=True)
     assert err.value.stderr == b"the error\n"
     captured = capsysbinary.readouterr()
     assert captured.out == b""
