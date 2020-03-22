@@ -2,6 +2,8 @@
 
 ## Version 0.4.0 (unreleased)
 
+- ``altair_saver.types`` is now a public module. (#47)
+- ``altair_saver.JavascriptError`` now importable at top-level. (#46)
 - Added top-level ``available_formats()`` function, which returns the set of
   available formats. (#43)
 
