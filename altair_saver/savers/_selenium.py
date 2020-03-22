@@ -6,7 +6,7 @@ import warnings
 
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, MimebundleContent
+from altair_saver._types import JSONDict, MimebundleContent
 
 from altair_data_server import Provider, Resource
 from altair_viewer import get_bundled_script

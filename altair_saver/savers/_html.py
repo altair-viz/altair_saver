@@ -6,7 +6,7 @@ import warnings
 
 import altair as alt
 from altair_saver.savers import Saver
-from altair_saver._utils import JSONDict, MimebundleContent
+from altair_saver._types import JSONDict, MimebundleContent
 from altair_viewer import get_bundled_script
 
 # This is the basic HTML template for embedding charts on a page.

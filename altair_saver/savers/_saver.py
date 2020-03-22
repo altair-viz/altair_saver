@@ -4,14 +4,12 @@ from typing import Dict, IO, Iterable, List, Optional, Union
 
 import altair as alt
 
+from altair_saver._types import Mimebundle, MimebundleContent, JSONDict
 from altair_saver._utils import (
     extract_format,
     fmt_to_mimetype,
     infer_mode_from_spec,
     maybe_open,
-    Mimebundle,
-    MimebundleContent,
-    JSONDict,
 )
 
 

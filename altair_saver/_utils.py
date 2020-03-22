@@ -6,14 +6,10 @@ import socket
 import subprocess
 import sys
 import tempfile
-from typing import Any, Dict, IO, Iterator, List, Optional, Union
+from typing import IO, Iterator, List, Optional, Union
 
 import altair as alt
-
-JSON = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
-JSONDict = Dict[str, JSON]
-MimebundleContent = Union[str, bytes, JSONDict]
-Mimebundle = Dict[str, MimebundleContent]
+from altair_saver._types import JSONDict
 
 
 def internet_connected(test_url: str = "cdn.jsdelivr.net") -> bool:
