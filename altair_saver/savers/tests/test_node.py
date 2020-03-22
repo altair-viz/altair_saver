@@ -7,7 +7,7 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 import pytest
 
-from altair_saver.savers import NodeSaver
+from altair_saver import NodeSaver
 from altair_saver._utils import fmt_to_mimetype
 
 

@@ -4,8 +4,8 @@ from typing import Iterator, Tuple
 
 import pytest
 
-from altair_saver.savers import BasicSaver
-from altair_saver._utils import JSONDict
+from altair_saver import BasicSaver
+from altair_saver._types import JSONDict
 
 
 def get_testcases() -> Iterator[Tuple[str, str, JSONDict]]:

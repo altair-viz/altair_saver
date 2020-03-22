@@ -9,8 +9,9 @@ import pandas as pd
 import pytest
 from PIL import Image
 
-from altair_saver.savers import SeleniumSaver, JavascriptError
-from altair_saver._utils import fmt_to_mimetype, internet_connected, JSONDict
+from altair_saver import SeleniumSaver, JavascriptError
+from altair_saver._types import JSONDict
+from altair_saver._utils import fmt_to_mimetype, internet_connected
 
 
 class _SVGImage:
