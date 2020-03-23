@@ -166,6 +166,19 @@ def test_save_chart_method(
         check_output(fp.getvalue(), fmt)
 
 
+def test_save_chart_data_warning(chart: alt.TopLevelMixin):
+    fp = io.StringIO()
+    with alt.data_transformers.enable("json"):
+        with pytest.warns(UserWarning) as record:
+            save(chart, fp, fmt="html")
+    assert len(record) == 1
+    assert (
+        record[0]
+        .message.args[0]
+        .startswith("save() may not function properly with the 'json' data transformer")
+    )
+
+
 @pytest.mark.parametrize("inline", [True, False])
 def test_html_inline(spec: JSONDict, inline: bool) -> None:
     fp = io.StringIO()
