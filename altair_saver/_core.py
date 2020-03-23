@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from typing import Any, Dict, IO, Iterable, Optional, Set, Type, Union
+import warnings
 
 import altair as alt
 
@@ -77,6 +78,7 @@ def save(
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
     method: Optional[Union[str, Type[Saver]]] = None,
+    suppress_data_warning: bool = False,
     **kwargs: Any,
 ) -> Optional[Union[str, bytes]]:
     """Save an Altair, Vega, or Vega-Lite chart
@@ -102,6 +104,8 @@ def save(
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
+    suppress_data_warning : bool (optional)
+        If True, suppress warning about json & csv data transformers.
 
     Additional Parameters
     ---------------------
@@ -129,6 +133,7 @@ def save(
     scale_factor : integer (optional)
         For method="selenium", scale saved image by this factor (default=1). This parameter
         value is overridden by embed_options["scaleFactor"] when both are specified.
+
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
 
@@ -142,6 +147,12 @@ def save(
     if isinstance(chart, dict):
         spec = chart
     else:
+        if alt.data_transformers.get() in [alt.data.to_json, alt.data.to_csv]:
+            warnings.warn(
+                f"save() may not function properly with the {alt.data_transformers.active!r} "
+                "data transformer: use alt.data_transformers.enable('default'). To "
+                "suppress this warning, pass suppress_data_warning=True."
+            )
         spec = chart.to_dict()
 
     if mode is None:
