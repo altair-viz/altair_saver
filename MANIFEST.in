@@ -1,8 +1,11 @@
-include *.md
-include *.py
-include setup.cfg
-include mypy.ini
+include CHANGES.md
 include LICENSE
+include Makefile
+include mypy.ini
+include pyproject.toml
+include README.md
 include requirements.txt
 include requirements-dev.txt
+include setup.cfg
+include setup.py
 recursive-include altair_saver *.py *.json *.png *.svg *.pdf
