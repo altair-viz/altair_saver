@@ -149,6 +149,8 @@ class SeleniumSaver(Saver):
         "vega": ["png", "svg"],
         "vega-lite": ["png", "svg", "vega"],
     }
+    driver_options: List[Union[str, WebDriver]] = ["chrome", "firefox"]
+
     _registry: _DriverRegistry = _DriverRegistry()
     _provider: Optional[Provider] = None
     _resources: Dict[str, Resource] = {}
@@ -185,7 +187,7 @@ class SeleniumSaver(Saver):
 
     @classmethod
     def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
-        for driver in ["chrome", "firefox"]:
+        for driver in cls.driver_options:
             try:
                 cls._registry.get(driver, driver_timeout)
             except WebDriverException:
@@ -221,9 +223,6 @@ class SeleniumSaver(Saver):
             cls._provider = None
 
     def _extract(self, fmt: str) -> MimebundleContent:
-        if fmt == "vega" and self._mode == "vega":
-            return self._spec
-
         driver = self._registry.get(self._webdriver, self._driver_timeout)
 
         if self._offline:

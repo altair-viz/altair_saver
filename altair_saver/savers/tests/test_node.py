@@ -9,6 +9,7 @@ import pytest
 
 from altair_saver import NodeSaver
 from altair_saver._utils import fmt_to_mimetype
+from altair_saver.savers import _node
 
 
 def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
@@ -74,5 +75,13 @@ def test_node_mimebundle_fail(name: str, data: Any) -> None:
         saver.mimebundle(fmt)
 
 
-def test_enabled() -> None:
-    assert NodeSaver.enabled()
+@pytest.mark.parametrize("enabled", [True, False])
+def test_enabled(monkeypatch: Any, enabled: bool) -> None:
+    def exec_path(name: str) -> str:
+        if enabled:
+            return name
+        else:
+            raise _node.ExecutableNotFound(name)
+
+    monkeypatch.setattr(_node, "exec_path", exec_path)
+    assert NodeSaver.enabled() is enabled
