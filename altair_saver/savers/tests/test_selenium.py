@@ -8,6 +8,7 @@ import altair as alt
 import pandas as pd
 import pytest
 from PIL import Image
+from selenium.common.exceptions import WebDriverException
 
 from altair_saver import SeleniumSaver, JavascriptError
 from altair_saver.types import JSONDict
@@ -109,8 +110,24 @@ def test_stop_and_start(name: str, data: Dict[str, Any]) -> None:
     assert bundle1 == bundle2
 
 
-def test_enabled() -> None:
-    assert SeleniumSaver.enabled()
+@pytest.mark.parametrize("enabled", [True, False])
+def test_enabled(monkeypatch: Any, enabled: bool) -> None:
+    monkeypatch.setattr(
+        SeleniumSaver, "_select_webdriver", lambda d: object() if enabled else None
+    )
+    assert SeleniumSaver.enabled() is enabled
+
+
+@pytest.mark.parametrize("webdriver", ["chrome", "firefox"])
+def test_select_webdriver(monkeypatch: Any, webdriver: str):
+    def get(driver: str, driver_timeout: int) -> str:
+        if driver == webdriver:
+            return driver
+        else:
+            raise WebDriverException(driver)
+
+    monkeypatch.setattr(SeleniumSaver._registry, "get", get)
+    assert SeleniumSaver._select_webdriver(20) == webdriver
 
 
 def test_extract_error() -> None:
