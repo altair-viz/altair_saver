@@ -122,12 +122,12 @@ class HTMLSaver(Saver):
         spec: JSONDict,
         mode: Optional[str] = None,
         embed_options: Optional[JSONDict] = None,
-        vega_cli_options: Optional[List] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
         inline: bool = False,
         standalone: Optional[bool] = None,
+        **kwargs,
     ) -> None:
         self._inline = inline
         self._standalone = standalone
@@ -135,7 +135,6 @@ class HTMLSaver(Saver):
             spec=spec,
             mode=mode,
             embed_options=embed_options,
-            vega_cli_options=vega_cli_options,
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,

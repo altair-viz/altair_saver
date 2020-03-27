@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Dict, IO, Iterable, List, Optional, Set, Type, Union
+from typing import Any, Dict, IO, Iterable, Optional, Set, Type, Union
 import warnings
 
 import altair as alt
@@ -77,7 +77,6 @@ def save(
     fmt: Optional[str] = None,
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
-    vega_cli_options: Optional[List] = None,
     method: Optional[Union[str, Type[Saver]]] = None,
     suppress_data_warning: bool = False,
     **kwargs: Any,
@@ -102,10 +101,6 @@ def save(
     embed_options : dict (optional)
         A dictionary of options to pass to vega-embed. If not specified, the default
         will be drawn from alt.renderers.options.
-    vega_cli_options : list (optional)
-        A list of additional arguments to pass to vega's CLI functions. All options
-        will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
-        If not specified, the default will be drawn from alt.renderers.options.
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
@@ -123,6 +118,9 @@ def save(
     vegaembed_version : string (optional)
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
+    vega_cli_options : list (optional)
+        For method="node", a list of additional arguments to pass to vega's CLI functions.
+        All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
     inline : boolean (optional)
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
@@ -165,19 +163,9 @@ def save(
 
     if embed_options is None:
         embed_options = alt.renderers.options.get("embed_options", None)
-    if vega_cli_options is None:
-        vega_cli_options = alt.renderers.options.get(
-            "vega_cli_options", None
-        )
 
     Saver = _select_saver(method, mode=mode, fmt=fmt, fp=fp)
-    saver = Saver(
-        spec,
-        mode=mode,
-        embed_options=embed_options,
-        vega_cli_options=vega_cli_options,
-        **kwargs,
-    )
+    saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs,)
 
     return saver.save(fp=fp, fmt=fmt)
 
@@ -187,7 +175,6 @@ def render(
     fmts: Union[str, Iterable[str]],
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
-    vega_cli_options: Optional[List] = None,
     method: Optional[Union[str, Type[Saver]]] = None,
     **kwargs: Any,
 ) -> Mimebundle:
@@ -210,9 +197,6 @@ def render(
     embed_options : dict (optional)
         A dictionary of options to pass to vega-embed. If not specified, the default
         will be drawn from alt.renderers.options.
-    vega_cli_options : list (optional)
-        A list of options to pass to vega CLI commands. If not specified, the default
-        will be drawn from alt.renderers.options.
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
@@ -228,6 +212,9 @@ def render(
     vegaembed_version : string (optional)
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
+    vega_cli_options : list (optional)
+        For method="node", a list of additional arguments to pass to vega's CLI functions.
+        All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
     inline : boolean (optional)
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
@@ -261,13 +248,7 @@ def render(
 
     for fmt in fmts:
         Saver = _select_saver(method, mode=mode, fmt=fmt)
-        saver = Saver(
-            spec,
-            mode=mode,
-            embed_options=embed_options,
-            vega_cli_options=vega_cli_options,
-            **kwargs,
-        )
+        saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs,)
         mimebundle.update(saver.mimebundle(fmt))
 
     return mimebundle

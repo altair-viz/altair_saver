@@ -2,7 +2,8 @@ import functools
 import json
 import shutil
 from typing import Dict, List, Optional
-import warnings
+
+import altair as alt
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
@@ -34,14 +35,11 @@ def exec_path(name: str) -> str:
     raise ExecutableNotFound(name)
 
 
-def vl2vg(spec: JSONDict, vega_cli_options: Optional[List] = None) -> JSONDict:
+def vl2vg(spec: JSONDict) -> JSONDict:
     """Compile a Vega-Lite spec into a Vega spec."""
     vl2vg = exec_path("vl2vg")
     vl_json = json.dumps(spec).encode()
-    cmd = [vl2vg]
-    if vega_cli_options:
-        cmd += vega_cli_options
-    vg_json = check_output_with_stderr(cmd, input=vl_json)
+    vg_json = check_output_with_stderr([vl2vg], input=vl_json)
     return json.loads(vg_json)
 
 
@@ -49,31 +47,23 @@ def vg2png(spec: JSONDict, vega_cli_options: Optional[List] = None) -> bytes:
     """Generate a PNG image from a Vega spec."""
     vg2png = exec_path("vg2png")
     vg_json = json.dumps(spec).encode()
-    cmd = [vg2png]
-    if vega_cli_options:
-        cmd += vega_cli_options
-    return check_output_with_stderr(cmd, input=vg_json)
+    return check_output_with_stderr([vg2png, *(vega_cli_options or [])], input=vg_json)
 
 
 def vg2pdf(spec: JSONDict, vega_cli_options: Optional[List] = None) -> bytes:
     """Generate a PDF image from a Vega spec."""
     vg2pdf = exec_path("vg2pdf")
     vg_json = json.dumps(spec).encode()
-    cmd = [vg2pdf]
-    if vega_cli_options:
-        cmd += vega_cli_options
-    return check_output_with_stderr(cmd, input=vg_json)
+    return check_output_with_stderr([vg2pdf, *(vega_cli_options or [])], input=vg_json)
 
 
 def vg2svg(spec: JSONDict, vega_cli_options: Optional[List] = None) -> str:
     """Generate an SVG image from a Vega spec."""
     vg2svg = exec_path("vg2svg")
     vg_json = json.dumps(spec).encode()
-    cmd = [vg2svg]
-    if vega_cli_options:
-        cmd += vega_cli_options
-    # raise Exception(cmd)
-    return check_output_with_stderr(cmd, input=vg_json).decode()
+    return check_output_with_stderr(
+        [vg2svg, *(vega_cli_options or [])], input=vg_json
+    ).decode()
 
 
 class NodeSaver(Saver):
@@ -82,6 +72,28 @@ class NodeSaver(Saver):
         "vega": ["pdf", "png", "svg"],
         "vega-lite": ["pdf", "png", "svg", "vega"],
     }
+    _vega_cli_options: List
+
+    def __init__(
+        self,
+        spec: JSONDict,
+        mode: Optional[str] = None,
+        embed_options: Optional[JSONDict] = None,
+        vega_version: str = alt.VEGA_VERSION,
+        vegalite_version: str = alt.VEGALITE_VERSION,
+        vegaembed_version: str = alt.VEGAEMBED_VERSION,
+        vega_cli_options: Optional[List] = None,
+        **kwargs,
+    ) -> None:
+        self._vega_cli_options = vega_cli_options or []
+        super().__init__(
+            spec=spec,
+            mode=mode,
+            embed_options=embed_options,
+            vega_version=vega_version,
+            vegalite_version=vegalite_version,
+            vegaembed_version=vegaembed_version,
+        )
 
     @classmethod
     def enabled(cls) -> bool:
@@ -91,9 +103,6 @@ class NodeSaver(Saver):
             return False
 
     def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
-        if self._embed_options:
-            warnings.warn("embed_options are not supported for method='node'.")
-
         if self._mode not in ["vega", "vega-lite"]:
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 

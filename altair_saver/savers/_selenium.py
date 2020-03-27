@@ -160,7 +160,6 @@ class SeleniumSaver(Saver):
         spec: JSONDict,
         mode: Optional[str] = None,
         embed_options: Optional[JSONDict] = None,
-        vega_cli_options: Optional[List] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
@@ -168,6 +167,7 @@ class SeleniumSaver(Saver):
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
         scale_factor: Optional[float] = 1,
+        **kwargs,
     ) -> None:
         self._driver_timeout = driver_timeout
         self._webdriver = (
@@ -181,7 +181,6 @@ class SeleniumSaver(Saver):
             spec=spec,
             mode=mode,
             embed_options=embed_options,
-            vega_cli_options=vega_cli_options,
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,

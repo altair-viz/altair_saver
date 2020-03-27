@@ -27,7 +27,6 @@ class Saver(metaclass=abc.ABCMeta):
     _spec: JSONDict
     _mode: str
     _embed_options: JSONDict
-    _vega_cli_options: List
     _package_versions: Dict[str, str]
 
     def __init__(
@@ -35,10 +34,10 @@ class Saver(metaclass=abc.ABCMeta):
         spec: JSONDict,
         mode: Optional[str] = None,
         embed_options: Optional[JSONDict] = None,
-        vega_cli_options: Optional[List] = None,
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
+        **kwargs,
     ):
         if mode is None:
             mode = infer_mode_from_spec(spec)
@@ -47,7 +46,6 @@ class Saver(metaclass=abc.ABCMeta):
         self._spec = spec
         self._mode = mode
         self._embed_options = embed_options or {}
-        self._vega_cli_options = vega_cli_options or []
         self._package_versions = {
             "vega": vega_version,
             "vega-lite": vegalite_version,
