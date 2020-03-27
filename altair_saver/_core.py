@@ -167,7 +167,7 @@ def save(
         embed_options = alt.renderers.options.get("embed_options", None)
     if vega_cli_options is None:
         vega_cli_options = alt.renderers.options.get(
-            "embevega_cli_optionsd_options", None
+            "vega_cli_options", None
         )
 
     Saver = _select_saver(method, mode=mode, fmt=fmt, fp=fp)
