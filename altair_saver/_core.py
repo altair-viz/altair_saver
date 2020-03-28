@@ -165,7 +165,7 @@ def save(
         embed_options = alt.renderers.options.get("embed_options", None)
 
     Saver = _select_saver(method, mode=mode, fmt=fmt, fp=fp)
-    saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs,)
+    saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
 
     return saver.save(fp=fp, fmt=fmt)
 
@@ -248,7 +248,7 @@ def render(
 
     for fmt in fmts:
         Saver = _select_saver(method, mode=mode, fmt=fmt)
-        saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs,)
+        saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
         mimebundle.update(saver.mimebundle(fmt))
 
     return mimebundle

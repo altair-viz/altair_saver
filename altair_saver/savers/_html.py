@@ -138,6 +138,7 @@ class HTMLSaver(Saver):
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,
+            **kwargs,
         )
 
     def _package_url(self, package: str) -> str:

@@ -3,8 +3,6 @@ import json
 import shutil
 from typing import Dict, List, Optional
 
-import altair as alt
-
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
 from altair_saver.savers import Saver
@@ -72,28 +70,17 @@ class NodeSaver(Saver):
         "vega": ["pdf", "png", "svg"],
         "vega-lite": ["pdf", "png", "svg", "vega"],
     }
-    _vega_cli_options: List
+    _vega_cli_options: List[str]
 
     def __init__(
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
-        embed_options: Optional[JSONDict] = None,
-        vega_version: str = alt.VEGA_VERSION,
-        vegalite_version: str = alt.VEGALITE_VERSION,
-        vegaembed_version: str = alt.VEGAEMBED_VERSION,
         vega_cli_options: Optional[List] = None,
         **kwargs,
     ) -> None:
         self._vega_cli_options = vega_cli_options or []
-        super().__init__(
-            spec=spec,
-            mode=mode,
-            embed_options=embed_options,
-            vega_version=vega_version,
-            vegalite_version=vegalite_version,
-            vegaembed_version=vegaembed_version,
-        )
+        super().__init__(spec=spec, mode=mode, **kwargs)
 
     @classmethod
     def enabled(cls) -> bool:

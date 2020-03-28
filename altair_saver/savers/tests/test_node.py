@@ -40,7 +40,7 @@ def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
 @pytest.mark.parametrize("mode,fmt", get_modes_and_formats())
 @pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "error"]])
 def test_node_mimebundle(
-    name: str, data: Any, mode: str, fmt: str, vega_cli_options: Optional[List]
+    name: str, data: Any, mode: str, fmt: str, vega_cli_options: Optional[List[str]]
 ) -> None:
     saver = NodeSaver(data[mode], mode=mode, vega_cli_options=vega_cli_options)
     mimetype, out = saver.mimebundle(fmt).popitem()

@@ -184,6 +184,7 @@ class SeleniumSaver(Saver):
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,
+            **kwargs,
         )
 
     @classmethod
