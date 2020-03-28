@@ -6,11 +6,13 @@ from typing import Any, Dict, IO, Iterator, List, Optional, Tuple
 from PIL import Image
 from PyPDF2 import PdfFileReader
 import pytest
+from _pytest.capture import SysCapture
 from _pytest.monkeypatch import MonkeyPatch
 
 from altair_saver import NodeSaver
 from altair_saver._utils import fmt_to_mimetype
 from altair_saver.savers import _node
+from altair_saver.types import JSONDict
 
 
 def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
@@ -29,6 +31,19 @@ def get_testcases() -> Iterator[Tuple[str, Dict[str, Any]]]:
         with open(os.path.join(directory, f"{case}.pdf"), "rb") as f:
             pdf = f.read()
         yield case, {"vega-lite": vl, "vega": vg, "svg": svg, "png": png, "pdf": pdf}
+
+
+@pytest.fixture
+def interactive_spec() -> JSONDict:
+    return {
+        "data": {"values": [{"x": 1, "y": 1}]},
+        "mark": "point",
+        "encoding": {
+            "x": {"field": "x", "type": "quantitative"},
+            "y": {"field": "y", "type": "quantitative"},
+        },
+        "selection": {"zoon": {"type": "interval", "bind": "scales"}},
+    }
 
 
 def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
@@ -89,3 +104,25 @@ def test_enabled(monkeypatch: MonkeyPatch, enabled: bool) -> None:
 
     monkeypatch.setattr(_node, "exec_path", exec_path)
     assert NodeSaver.enabled() is enabled
+
+
+@pytest.mark.parametrize("suppress_warnings", [True, False])
+def test_stderr_suppression(
+    interactive_spec: JSONDict,
+    suppress_warnings: bool,
+    monkeypatch: MonkeyPatch,
+    capsys: SysCapture,
+) -> None:
+    message = NodeSaver._stderr_ignore[0]
+
+    # Window resolve warnings are emitted by the vega CLI when an interactive chart
+    # is saved, and are suppressed by default.
+    if not suppress_warnings:
+        monkeypatch.setattr(NodeSaver, "_stderr_ignore", [])
+
+    NodeSaver(interactive_spec).save(fmt="png")
+    captured = capsys.readouterr()
+    if suppress_warnings:
+        assert message not in captured.err
+    else:
+        assert message in captured.err
