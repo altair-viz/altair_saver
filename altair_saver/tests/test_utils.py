@@ -6,7 +6,7 @@ import tempfile
 from typing import Any
 
 import pytest
-from _pytest.capture import SysCaptureBinary
+from _pytest.capture import SysCapture
 
 from altair_saver.types import JSONDict
 from altair_saver._utils import (
@@ -133,20 +133,27 @@ def test_infer_mode_from_spec(mode: str, spec: JSONDict) -> None:
     assert infer_mode_from_spec(spec) == mode
 
 
-def test_check_output_with_stderr(capsysbinary: SysCaptureBinary) -> None:
-    output = check_output_with_stderr(
-        r'>&2 echo "the error" && echo "the output"', shell=True
-    )
-    assert output == b"the output\n"
-    captured = capsysbinary.readouterr()
-    assert captured.out == b""
-    assert captured.err == b"the error\n"
+@pytest.mark.parametrize("cmd_error", [True, False])
+@pytest.mark.parametrize("use_filter", [True, False])
+def test_check_output_with_stderr(
+    capsys: SysCapture, use_filter: bool, cmd_error: bool
+) -> None:
+    cmd = r'>&2 echo "first error\nsecond error" && echo "the output"'
+    stderr_filter = None if not use_filter else lambda line: line.startswith("second")
 
+    if cmd_error:
+        cmd += r" && exit 1"
+        with pytest.raises(subprocess.CalledProcessError) as err:
+            check_output_with_stderr(cmd, shell=True, stderr_filter=stderr_filter)
+        assert err.value.stderr == b"first error\nsecond error\n"
+    else:
+        output = check_output_with_stderr(cmd, shell=True, stderr_filter=stderr_filter)
+        assert output == b"the output\n"
 
-def test_check_output_with_stderr_exit_1(capsysbinary: SysCaptureBinary) -> None:
-    with pytest.raises(subprocess.CalledProcessError) as err:
-        check_output_with_stderr(r'>&2 echo "the error" && exit 1', shell=True)
-    assert err.value.stderr == b"the error\n"
-    captured = capsysbinary.readouterr()
-    assert captured.out == b""
-    assert captured.err == b"the error\n"
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+    if use_filter:
+        assert captured.err == "second error\n"
+    else:
+        assert captured.err == "first error\nsecond error\n"
