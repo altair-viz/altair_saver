@@ -6,7 +6,7 @@ import socket
 import subprocess
 import sys
 import tempfile
-from typing import IO, Iterator, List, Optional, Union
+from typing import Callable, IO, Iterator, List, Optional, Union
 
 import altair as alt
 
@@ -168,31 +168,53 @@ def extract_format(fp: Union[IO, str]) -> str:
 
 
 def check_output_with_stderr(
-    cmd: Union[str, List[str]], shell: bool = False, input: Optional[bytes] = None
+    cmd: Union[str, List[str]],
+    shell: bool = False,
+    input: Optional[bytes] = None,
+    stderr_filter: Callable[[str], bool] = None,
 ) -> bytes:
     """Run a command in a subprocess, printing stderr to sys.stderr.
 
-    Arguments are passed directly to subprocess.run().
+    This function exists because normally, stderr from subprocess in the notebook
+    is printed to the terminal rather than to the notebook itself.
 
-    This is important because subprocess stderr in notebooks is printed to the
-    terminal rather than the notebook.
+    Parameters
+    ----------
+    cmd, shell, input :
+        Arguments are passed directly to `subprocess.run()`.
+    stderr_filter : function(str)->bool (optional)
+        If provided, this function is used to filter stderr lines from display.
+
+    Returns
+    -------
+    result : bytes
+        The stdout from the command
+
+    Raises
+    ------
+    subprocess.CalledProcessError : if the called process returns a non-zero exit code.
     """
     try:
         ps = subprocess.run(
             cmd,
             shell=shell,
+            input=input,
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            input=input,
         )
     except subprocess.CalledProcessError as err:
-        if err.stderr:
-            sys.stderr.write(err.stderr.decode())
-            sys.stderr.flush()
+        stderr = err.stderr
         raise
     else:
-        if ps.stderr:
-            sys.stderr.write(ps.stderr.decode())
-            sys.stderr.flush()
+        stderr = ps.stderr
         return ps.stdout
+    finally:
+        s = stderr.decode()
+        if stderr_filter:
+            s = "\n".join(filter(stderr_filter, s.splitlines()))
+        if s:
+            if not s.endswith("\n"):
+                s += "\n"
+            sys.stderr.write(s)
+            sys.stderr.flush()

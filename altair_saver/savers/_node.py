@@ -1,7 +1,7 @@
 import functools
 import json
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
@@ -33,34 +33,54 @@ def exec_path(name: str) -> str:
     raise ExecutableNotFound(name)
 
 
-def vl2vg(spec: JSONDict) -> JSONDict:
+def vl2vg(
+    spec: JSONDict, stderr_filter: Optional[Callable[[str], bool]] = None
+) -> JSONDict:
     """Compile a Vega-Lite spec into a Vega spec."""
     vl2vg = exec_path("vl2vg")
     vl_json = json.dumps(spec).encode()
-    vg_json = check_output_with_stderr([vl2vg], input=vl_json)
+    vg_json = check_output_with_stderr(
+        [vl2vg], input=vl_json, stderr_filter=stderr_filter
+    )
     return json.loads(vg_json)
 
 
-def vg2png(spec: JSONDict, vega_cli_options: Optional[List[str]] = None) -> bytes:
+def vg2png(
+    spec: JSONDict,
+    vega_cli_options: Optional[List[str]] = None,
+    stderr_filter: Optional[Callable[[str], bool]] = None,
+) -> bytes:
     """Generate a PNG image from a Vega spec."""
     vg2png = exec_path("vg2png")
     vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr([vg2png, *(vega_cli_options or [])], input=vg_json)
+    return check_output_with_stderr(
+        [vg2png, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
+    )
 
 
-def vg2pdf(spec: JSONDict, vega_cli_options: Optional[List[str]] = None) -> bytes:
+def vg2pdf(
+    spec: JSONDict,
+    vega_cli_options: Optional[List[str]] = None,
+    stderr_filter: Optional[Callable[[str], bool]] = None,
+) -> bytes:
     """Generate a PDF image from a Vega spec."""
     vg2pdf = exec_path("vg2pdf")
     vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr([vg2pdf, *(vega_cli_options or [])], input=vg_json)
+    return check_output_with_stderr(
+        [vg2pdf, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
+    )
 
 
-def vg2svg(spec: JSONDict, vega_cli_options: Optional[List[str]] = None) -> str:
+def vg2svg(
+    spec: JSONDict,
+    vega_cli_options: Optional[List[str]] = None,
+    stderr_filter: Optional[Callable[[str], bool]] = None,
+) -> str:
     """Generate an SVG image from a Vega spec."""
     vg2svg = exec_path("vg2svg")
     vg_json = json.dumps(spec).encode()
     return check_output_with_stderr(
-        [vg2svg, *(vega_cli_options or [])], input=vg_json
+        [vg2svg, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
     ).decode()
 
 
@@ -82,6 +102,12 @@ class NodeSaver(Saver):
         self._vega_cli_options = vega_cli_options or []
         super().__init__(spec=spec, mode=mode, **kwargs)
 
+    _stderr_ignore = ["WARN Can not resolve event source: window"]
+
+    @classmethod
+    def _stderr_filter(cls, line: str) -> bool:
+        return line not in cls._stderr_ignore
+
     @classmethod
     def enabled(cls) -> bool:
         try:
@@ -96,15 +122,27 @@ class NodeSaver(Saver):
         spec = self._spec
 
         if self._mode == "vega-lite":
-            spec = vl2vg(spec)
+            spec = vl2vg(spec, stderr_filter=self._stderr_filter)
 
         if fmt == "vega":
             return spec
         elif fmt == "png":
-            return vg2png(spec, vega_cli_options=self._vega_cli_options)
+            return vg2png(
+                spec,
+                vega_cli_options=self._vega_cli_options,
+                stderr_filter=self._stderr_filter,
+            )
         elif fmt == "svg":
-            return vg2svg(spec, vega_cli_options=self._vega_cli_options)
+            return vg2svg(
+                spec,
+                vega_cli_options=self._vega_cli_options,
+                stderr_filter=self._stderr_filter,
+            )
         elif fmt == "pdf":
-            return vg2pdf(spec, vega_cli_options=self._vega_cli_options)
+            return vg2pdf(
+                spec,
+                vega_cli_options=self._vega_cli_options,
+                stderr_filter=self._stderr_filter,
+            )
         else:
             raise ValueError(f"Unrecognized format: {fmt!r}")
