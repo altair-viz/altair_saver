@@ -6,6 +6,8 @@ import altair as alt
 import pandas as pd
 import pytest
 
+from _pytest.capture import SysCapture
+
 from altair_saver import (
     available_formats,
     save,
@@ -255,6 +257,53 @@ def test_embed_options_save_html_override(spec: JSONDict) -> None:
         save(spec, fp, "html", embed_options=embed_options)
     html = fp.getvalue()
     assert f"const embedOpt = {json.dumps(embed_options)};" in html
+
+
+@pytest.mark.parametrize("fmt", ["html", "svg"])
+@pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "debug"]])
+def test_save_w_vega_cli_options(
+    monkeypatch: Any,
+    capsys: SysCapture,
+    chart: alt.TopLevelMixin,
+    fmt: str,
+    vega_cli_options: Optional[List],
+) -> None:
+    """Tests that `vega_cli_options` works with both NodeSaver and other Savers"""
+    monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
+    monkeypatch.setattr(SeleniumSaver, "enabled", lambda: False)
+    fp: Union[io.BytesIO, io.StringIO]
+    result = save(chart, fmt=fmt, vega_cli_options=vega_cli_options)
+    assert result is not None
+    check_output(result, fmt)
+
+    stderr = capsys.readouterr().err
+    if vega_cli_options and fmt == "svg":
+        assert "DEBUG" in stderr
+
+
+@pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "debug"]])
+def test_render_w_vega_cli_options(
+    monkeypatch: Any,
+    capsys: SysCapture,
+    chart: alt.TopLevelMixin,
+    vega_cli_options: Optional[List],
+) -> None:
+    """Tests that `vega_cli_options` works with both NodeSaver and other Savers"""
+    monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
+    monkeypatch.setattr(SeleniumSaver, "enabled", lambda: False)
+    bundle = render(chart, fmts=["html", "svg"], vega_cli_options=vega_cli_options)
+    assert len(bundle) == 2
+    for mimetype, content in bundle.items():
+        assert content is not None
+        fmt = mimetype_to_fmt(mimetype)
+        if isinstance(content, dict):
+            check_output(json.dumps(content), fmt)
+        else:
+            check_output(content, fmt)
+
+    stderr = capsys.readouterr().err
+    if vega_cli_options:
+        assert "DEBUG" in stderr
 
 
 def test_infer_format(spec: JSONDict) -> None:

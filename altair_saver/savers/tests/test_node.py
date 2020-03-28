@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from typing import Any, Dict, IO, Iterator, Tuple
+from typing import Any, Dict, IO, Iterator, List, Optional, Tuple
 
 from PIL import Image
 from PyPDF2 import PdfFileReader
@@ -37,9 +37,12 @@ def get_modes_and_formats() -> Iterator[Tuple[str, str]]:
 
 
 @pytest.mark.parametrize("name,data", get_testcases())
-@pytest.mark.parametrize("mode, fmt", get_modes_and_formats())
-def test_node_mimebundle(name: str, data: Any, mode: str, fmt: str) -> None:
-    saver = NodeSaver(data[mode], mode=mode)
+@pytest.mark.parametrize("mode,fmt", get_modes_and_formats())
+@pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "error"]])
+def test_node_mimebundle(
+    name: str, data: Any, mode: str, fmt: str, vega_cli_options: Optional[List[str]]
+) -> None:
+    saver = NodeSaver(data[mode], mode=mode, vega_cli_options=vega_cli_options)
     mimetype, out = saver.mimebundle(fmt).popitem()
     assert mimetype == fmt_to_mimetype(fmt)
     if fmt == "png":

@@ -167,6 +167,7 @@ class SeleniumSaver(Saver):
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
         scale_factor: Optional[float] = 1,
+        **kwargs,
     ) -> None:
         self._driver_timeout = driver_timeout
         self._webdriver = (
@@ -183,6 +184,7 @@ class SeleniumSaver(Saver):
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,
+            **kwargs,
         )
 
     @classmethod

@@ -37,6 +37,7 @@ class Saver(metaclass=abc.ABCMeta):
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
+        **kwargs,
     ):
         if mode is None:
             mode = infer_mode_from_spec(spec)

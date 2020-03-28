@@ -127,6 +127,7 @@ class HTMLSaver(Saver):
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
         inline: bool = False,
         standalone: Optional[bool] = None,
+        **kwargs,
     ) -> None:
         self._inline = inline
         self._standalone = standalone
@@ -137,6 +138,7 @@ class HTMLSaver(Saver):
             vega_version=vega_version,
             vegalite_version=vegalite_version,
             vegaembed_version=vegaembed_version,
+            **kwargs,
         )
 
     def _package_url(self, package: str) -> str:

@@ -1,8 +1,7 @@
 import functools
 import json
 import shutil
-from typing import Dict, List
-import warnings
+from typing import Dict, List, Optional
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
@@ -42,25 +41,27 @@ def vl2vg(spec: JSONDict) -> JSONDict:
     return json.loads(vg_json)
 
 
-def vg2png(spec: JSONDict) -> bytes:
+def vg2png(spec: JSONDict, vega_cli_options: Optional[List] = None) -> bytes:
     """Generate a PNG image from a Vega spec."""
     vg2png = exec_path("vg2png")
     vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr([vg2png], input=vg_json)
+    return check_output_with_stderr([vg2png, *(vega_cli_options or [])], input=vg_json)
 
 
-def vg2pdf(spec: JSONDict) -> bytes:
+def vg2pdf(spec: JSONDict, vega_cli_options: Optional[List] = None) -> bytes:
     """Generate a PDF image from a Vega spec."""
     vg2pdf = exec_path("vg2pdf")
     vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr([vg2pdf], input=vg_json)
+    return check_output_with_stderr([vg2pdf, *(vega_cli_options or [])], input=vg_json)
 
 
-def vg2svg(spec: JSONDict) -> str:
+def vg2svg(spec: JSONDict, vega_cli_options: Optional[List] = None) -> str:
     """Generate an SVG image from a Vega spec."""
     vg2svg = exec_path("vg2svg")
     vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr([vg2svg], input=vg_json).decode()
+    return check_output_with_stderr(
+        [vg2svg, *(vega_cli_options or [])], input=vg_json
+    ).decode()
 
 
 class NodeSaver(Saver):
@@ -69,6 +70,17 @@ class NodeSaver(Saver):
         "vega": ["pdf", "png", "svg"],
         "vega-lite": ["pdf", "png", "svg", "vega"],
     }
+    _vega_cli_options: List[str]
+
+    def __init__(
+        self,
+        spec: JSONDict,
+        mode: Optional[str] = None,
+        vega_cli_options: Optional[List] = None,
+        **kwargs,
+    ) -> None:
+        self._vega_cli_options = vega_cli_options or []
+        super().__init__(spec=spec, mode=mode, **kwargs)
 
     @classmethod
     def enabled(cls) -> bool:
@@ -78,9 +90,6 @@ class NodeSaver(Saver):
             return False
 
     def _serialize(self, fmt: str, content_type: str) -> MimebundleContent:
-        if self._embed_options:
-            warnings.warn("embed_options are not supported for method='node'.")
-
         if self._mode not in ["vega", "vega-lite"]:
             raise ValueError("mode must be either 'vega' or 'vega-lite'")
 
@@ -92,10 +101,10 @@ class NodeSaver(Saver):
         if fmt == "vega":
             return spec
         elif fmt == "png":
-            return vg2png(spec)
+            return vg2png(spec, vega_cli_options=self._vega_cli_options)
         elif fmt == "svg":
-            return vg2svg(spec)
+            return vg2svg(spec, vega_cli_options=self._vega_cli_options)
         elif fmt == "pdf":
-            return vg2pdf(spec)
+            return vg2pdf(spec, vega_cli_options=self._vega_cli_options)
         else:
             raise ValueError(f"Unrecognized format: {fmt!r}")

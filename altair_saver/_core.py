@@ -118,6 +118,9 @@ def save(
     vegaembed_version : string (optional)
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
+    vega_cli_options : list (optional)
+        For method="node", a list of additional arguments to pass to vega's CLI functions.
+        All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
     inline : boolean (optional)
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
@@ -209,6 +212,9 @@ def render(
     vegaembed_version : string (optional)
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
+    vega_cli_options : list (optional)
+        For method="node", a list of additional arguments to pass to vega's CLI functions.
+        All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
     inline : boolean (optional)
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
