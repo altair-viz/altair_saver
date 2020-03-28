@@ -136,7 +136,6 @@ def test_save_spec(spec: JSONDict, fmt: str) -> None:
 
 @pytest.mark.parametrize("fmt", FORMATS)
 def test_save_return_value(spec: JSONDict, fmt: str) -> None:
-    fp: Union[io.BytesIO, io.StringIO]
     result = save(spec, fmt=fmt)
     assert result is not None
     check_output(result, fmt)
@@ -272,9 +271,7 @@ def test_save_w_vega_cli_options(
     vega_cli_options: Optional[List[str]],
 ) -> None:
     """Tests that `vega_cli_options` works with both NodeSaver and other Savers"""
-    monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
     monkeypatch.setattr(SeleniumSaver, "enabled", lambda: False)
-    fp: Union[io.BytesIO, io.StringIO]
     result = save(chart, fmt=fmt, vega_cli_options=vega_cli_options)
     assert result is not None
     check_output(result, fmt)
