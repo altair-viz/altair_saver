@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import Dict, IO, Iterable, List, Optional, Union
+from typing import Any, Dict, IO, Iterable, List, Optional, Union
 
 import altair as alt
 
@@ -37,7 +37,7 @@ class Saver(metaclass=abc.ABCMeta):
         vega_version: str = alt.VEGA_VERSION,
         vegalite_version: str = alt.VEGALITE_VERSION,
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
-        **kwargs,
+        **kwargs: Any,
     ):
         if mode is None:
             mode = infer_mode_from_spec(spec)

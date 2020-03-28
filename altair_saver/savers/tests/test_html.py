@@ -17,7 +17,7 @@ CDN_URL = "https://cdn.jsdelivr.net"
 
 
 @pytest.fixture(scope="module")
-def internet_ok():
+def internet_ok() -> bool:
     return internet_connected()
 
 

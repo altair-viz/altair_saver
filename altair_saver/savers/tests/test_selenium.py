@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 from PIL import Image
 from selenium.common.exceptions import WebDriverException
+from _pytest.monkeypatch import MonkeyPatch
 
 from altair_saver import SeleniumSaver, JavascriptError
 from altair_saver.types import JSONDict
@@ -32,7 +33,7 @@ class _SVGImage:
 
 
 @pytest.fixture(scope="module")
-def internet_ok():
+def internet_ok() -> bool:
     return internet_connected()
 
 
@@ -111,7 +112,7 @@ def test_stop_and_start(name: str, data: Dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("enabled", [True, False])
-def test_enabled(monkeypatch: Any, enabled: bool) -> None:
+def test_enabled(monkeypatch: MonkeyPatch, enabled: bool) -> None:
     monkeypatch.setattr(
         SeleniumSaver, "_select_webdriver", lambda d: object() if enabled else None
     )
@@ -119,7 +120,7 @@ def test_enabled(monkeypatch: Any, enabled: bool) -> None:
 
 
 @pytest.mark.parametrize("webdriver", ["chrome", "firefox"])
-def test_select_webdriver(monkeypatch: Any, webdriver: str):
+def test_select_webdriver(monkeypatch: MonkeyPatch, webdriver: str) -> None:
     def get(driver: str, driver_timeout: int) -> str:
         if driver == webdriver:
             return driver

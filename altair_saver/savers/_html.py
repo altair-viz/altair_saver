@@ -1,6 +1,6 @@
 """An HTML altair saver"""
 import json
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import uuid
 import warnings
 
@@ -127,7 +127,7 @@ class HTMLSaver(Saver):
         vegaembed_version: str = alt.VEGAEMBED_VERSION,
         inline: bool = False,
         standalone: Optional[bool] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         self._inline = inline
         self._standalone = standalone

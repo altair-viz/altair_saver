@@ -1,7 +1,7 @@
 import atexit
 import base64
 import os
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 import warnings
 
 import altair as alt
@@ -167,7 +167,7 @@ class SeleniumSaver(Saver):
         webdriver: Optional[Union[str, WebDriver]] = None,
         offline: bool = True,
         scale_factor: Optional[float] = 1,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         self._driver_timeout = driver_timeout
         self._webdriver = (

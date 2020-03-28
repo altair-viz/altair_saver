@@ -1,12 +1,13 @@
 import io
 import json
-from typing import Any, Dict, List, Optional, Union, Type
+from typing import Dict, List, Optional, Union, Type
 
 import altair as alt
 import pandas as pd
 import pytest
 
 from _pytest.capture import SysCapture
+from _pytest.monkeypatch import MonkeyPatch
 
 from altair_saver import (
     available_formats,
@@ -51,7 +52,7 @@ def check_output(out: Union[str, bytes], fmt: str) -> None:
         ("selenium", SeleniumSaver),
     ],
 )
-def test_select_saver_by_method(method: str, saver: Type[Saver]):
+def test_select_saver_by_method(method: str, saver: Type[Saver]) -> None:
     assert saver is _select_saver(method=method, mode="vega-lite")
 
 
@@ -71,8 +72,8 @@ def test_select_saver_by_method(method: str, saver: Type[Saver]):
     ],
 )
 def test_select_saver_infer_method(
-    monkeypatch: Any, mode: str, fmt: str, saver: Type[Saver]
-):
+    monkeypatch: MonkeyPatch, mode: str, fmt: str, saver: Type[Saver]
+) -> None:
     monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
     monkeypatch.setattr(SeleniumSaver, "enabled", lambda: True)
 
@@ -88,7 +89,9 @@ def test_select_saver_infer_method(
         (4, None, "Unrecognized method: 4"),
     ],
 )
-def test_select_saver_errors(method: Optional[str], fmt: Optional[str], errtext: str):
+def test_select_saver_errors(
+    method: Optional[str], fmt: Optional[str], errtext: str
+) -> None:
     with pytest.raises(ValueError) as err:
         _select_saver(mode="vega-lite", method=method, fmt=fmt)
     assert errtext in str(err.value)
@@ -168,7 +171,7 @@ def test_save_chart_method(
         check_output(fp.getvalue(), fmt)
 
 
-def test_save_chart_data_warning(chart: alt.TopLevelMixin):
+def test_save_chart_data_warning(chart: alt.TopLevelMixin) -> None:
     fp = io.StringIO()
     with alt.data_transformers.enable("json"):
         with pytest.warns(UserWarning) as record:
@@ -262,11 +265,11 @@ def test_embed_options_save_html_override(spec: JSONDict) -> None:
 @pytest.mark.parametrize("fmt", ["html", "svg"])
 @pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "debug"]])
 def test_save_w_vega_cli_options(
-    monkeypatch: Any,
+    monkeypatch: MonkeyPatch,
     capsys: SysCapture,
     chart: alt.TopLevelMixin,
     fmt: str,
-    vega_cli_options: Optional[List],
+    vega_cli_options: Optional[List[str]],
 ) -> None:
     """Tests that `vega_cli_options` works with both NodeSaver and other Savers"""
     monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
@@ -283,10 +286,10 @@ def test_save_w_vega_cli_options(
 
 @pytest.mark.parametrize("vega_cli_options", [None, ["--loglevel", "debug"]])
 def test_render_w_vega_cli_options(
-    monkeypatch: Any,
+    monkeypatch: MonkeyPatch,
     capsys: SysCapture,
     chart: alt.TopLevelMixin,
-    vega_cli_options: Optional[List],
+    vega_cli_options: Optional[List[str]],
 ) -> None:
     """Tests that `vega_cli_options` works with both NodeSaver and other Savers"""
     monkeypatch.setattr(NodeSaver, "enabled", lambda: True)
@@ -316,7 +319,7 @@ def test_infer_format(spec: JSONDict) -> None:
 
 
 @pytest.mark.parametrize("mode", ["vega", "vega-lite"])
-def test_available_formats(monkeypatch: Any, mode: str) -> None:
+def test_available_formats(monkeypatch: MonkeyPatch, mode: str) -> None:
     monkeypatch.setattr(NodeSaver, "enabled", lambda: False)
     monkeypatch.setattr(SeleniumSaver, "enabled", lambda: False)
     expected = {mode, "json", "html"}
@@ -331,7 +334,7 @@ def test_available_formats(monkeypatch: Any, mode: str) -> None:
     assert available_formats(mode) == expected
 
 
-def test_available_formats_error():
+def test_available_formats_error() -> None:
     message = "Invalid mode: 'bad-mode'. Must be one of ('vega', 'vega-lite')"
     with pytest.raises(ValueError) as err:
         available_formats("bad-mode")
