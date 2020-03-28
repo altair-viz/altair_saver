@@ -6,6 +6,7 @@ from typing import Any, Dict, IO, Iterator, List, Optional, Tuple
 from PIL import Image
 from PyPDF2 import PdfFileReader
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 
 from altair_saver import NodeSaver
 from altair_saver._utils import fmt_to_mimetype
@@ -79,7 +80,7 @@ def test_node_mimebundle_fail(name: str, data: Any) -> None:
 
 
 @pytest.mark.parametrize("enabled", [True, False])
-def test_enabled(monkeypatch: Any, enabled: bool) -> None:
+def test_enabled(monkeypatch: MonkeyPatch, enabled: bool) -> None:
     def exec_path(name: str) -> str:
         if enabled:
             return name

@@ -3,6 +3,7 @@ import io
 import socket
 import subprocess
 import tempfile
+from typing import Any
 
 import pytest
 from _pytest.capture import SysCaptureBinary
@@ -22,9 +23,9 @@ from altair_saver._utils import (
 
 @pytest.mark.parametrize("connected", [True, False])
 def test_internet_connected(monkeypatch, connected: bool) -> None:
-    def request(*args, **kwargs):
+    def request(*args: Any, **kwargs: Any) -> None:
         if not connected:
-            raise socket.gaierror("error")
+            raise socket.gaierror(0)
 
     monkeypatch.setattr(http.client.HTTPConnection, "request", request)
     assert internet_connected() is connected
@@ -132,7 +133,7 @@ def test_infer_mode_from_spec(mode: str, spec: JSONDict) -> None:
     assert infer_mode_from_spec(spec) == mode
 
 
-def test_check_output_with_stderr(capsysbinary: SysCaptureBinary):
+def test_check_output_with_stderr(capsysbinary: SysCaptureBinary) -> None:
     output = check_output_with_stderr(
         r'>&2 echo "the error" && echo "the output"', shell=True
     )
@@ -142,7 +143,7 @@ def test_check_output_with_stderr(capsysbinary: SysCaptureBinary):
     assert captured.err == b"the error\n"
 
 
-def test_check_output_with_stderr_exit_1(capsysbinary: SysCaptureBinary):
+def test_check_output_with_stderr_exit_1(capsysbinary: SysCaptureBinary) -> None:
     with pytest.raises(subprocess.CalledProcessError) as err:
         check_output_with_stderr(r'>&2 echo "the error" && exit 1', shell=True)
     assert err.value.stderr == b"the error\n"
