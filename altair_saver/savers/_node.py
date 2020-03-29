@@ -1,7 +1,7 @@
 import functools
 import json
 import shutil
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
@@ -33,57 +33,6 @@ def exec_path(name: str) -> str:
     raise ExecutableNotFound(name)
 
 
-def vl2vg(
-    spec: JSONDict, stderr_filter: Optional[Callable[[str], bool]] = None
-) -> JSONDict:
-    """Compile a Vega-Lite spec into a Vega spec."""
-    vl2vg = exec_path("vl2vg")
-    vl_json = json.dumps(spec).encode()
-    vg_json = check_output_with_stderr(
-        [vl2vg], input=vl_json, stderr_filter=stderr_filter
-    )
-    return json.loads(vg_json)
-
-
-def vg2png(
-    spec: JSONDict,
-    vega_cli_options: Optional[List[str]] = None,
-    stderr_filter: Optional[Callable[[str], bool]] = None,
-) -> bytes:
-    """Generate a PNG image from a Vega spec."""
-    vg2png = exec_path("vg2png")
-    vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr(
-        [vg2png, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
-    )
-
-
-def vg2pdf(
-    spec: JSONDict,
-    vega_cli_options: Optional[List[str]] = None,
-    stderr_filter: Optional[Callable[[str], bool]] = None,
-) -> bytes:
-    """Generate a PDF image from a Vega spec."""
-    vg2pdf = exec_path("vg2pdf")
-    vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr(
-        [vg2pdf, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
-    )
-
-
-def vg2svg(
-    spec: JSONDict,
-    vega_cli_options: Optional[List[str]] = None,
-    stderr_filter: Optional[Callable[[str], bool]] = None,
-) -> str:
-    """Generate an SVG image from a Vega spec."""
-    vg2svg = exec_path("vg2svg")
-    vg_json = json.dumps(spec).encode()
-    return check_output_with_stderr(
-        [vg2svg, *(vega_cli_options or [])], input=vg_json, stderr_filter=stderr_filter
-    ).decode()
-
-
 class NodeSaver(Saver):
 
     valid_formats: Dict[str, List[str]] = {
@@ -91,6 +40,11 @@ class NodeSaver(Saver):
         "vega-lite": ["pdf", "png", "svg", "vega"],
     }
     _vega_cli_options: List[str]
+    _stderr_ignore = ["WARN Can not resolve event source: window"]
+
+    @classmethod
+    def _stderr_filter(cls, line: str) -> bool:
+        return line not in cls._stderr_ignore
 
     def __init__(
         self,
@@ -102,11 +56,44 @@ class NodeSaver(Saver):
         self._vega_cli_options = vega_cli_options or []
         super().__init__(spec=spec, mode=mode, **kwargs)
 
-    _stderr_ignore = ["WARN Can not resolve event source: window"]
+    def _vl2vg(self, spec: JSONDict) -> JSONDict:
+        """Compile a Vega-Lite spec into a Vega spec."""
+        vl2vg = exec_path("vl2vg")
+        vl_json = json.dumps(spec).encode()
+        vg_json = check_output_with_stderr(
+            [vl2vg], input=vl_json, stderr_filter=self._stderr_filter
+        )
+        return json.loads(vg_json)
 
-    @classmethod
-    def _stderr_filter(cls, line: str) -> bool:
-        return line not in cls._stderr_ignore
+    def _vg2png(self, spec: JSONDict) -> bytes:
+        """Generate a PNG image from a Vega spec."""
+        vg2png = exec_path("vg2png")
+        vg_json = json.dumps(spec).encode()
+        return check_output_with_stderr(
+            [vg2png, *(self._vega_cli_options or [])],
+            input=vg_json,
+            stderr_filter=self._stderr_filter,
+        )
+
+    def _vg2pdf(self, spec: JSONDict) -> bytes:
+        """Generate a PDF image from a Vega spec."""
+        vg2pdf = exec_path("vg2pdf")
+        vg_json = json.dumps(spec).encode()
+        return check_output_with_stderr(
+            [vg2pdf, *(self._vega_cli_options or [])],
+            input=vg_json,
+            stderr_filter=self._stderr_filter,
+        )
+
+    def _vg2svg(self, spec: JSONDict) -> str:
+        """Generate an SVG image from a Vega spec."""
+        vg2svg = exec_path("vg2svg")
+        vg_json = json.dumps(spec).encode()
+        return check_output_with_stderr(
+            [vg2svg, *(self._vega_cli_options or [])],
+            input=vg_json,
+            stderr_filter=self._stderr_filter,
+        ).decode()
 
     @classmethod
     def enabled(cls) -> bool:
@@ -122,27 +109,15 @@ class NodeSaver(Saver):
         spec = self._spec
 
         if self._mode == "vega-lite":
-            spec = vl2vg(spec, stderr_filter=self._stderr_filter)
+            spec = self._vl2vg(spec)
 
         if fmt == "vega":
             return spec
         elif fmt == "png":
-            return vg2png(
-                spec,
-                vega_cli_options=self._vega_cli_options,
-                stderr_filter=self._stderr_filter,
-            )
+            return self._vg2png(spec)
         elif fmt == "svg":
-            return vg2svg(
-                spec,
-                vega_cli_options=self._vega_cli_options,
-                stderr_filter=self._stderr_filter,
-            )
+            return self._vg2svg(spec)
         elif fmt == "pdf":
-            return vg2pdf(
-                spec,
-                vega_cli_options=self._vega_cli_options,
-                stderr_filter=self._stderr_filter,
-            )
+            return self._vg2pdf(spec)
         else:
             raise ValueError(f"Unrecognized format: {fmt!r}")
