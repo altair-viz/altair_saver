@@ -108,20 +108,19 @@ def test_enabled(monkeypatch: MonkeyPatch, enabled: bool) -> None:
 
 @pytest.mark.parametrize("suppress_warnings", [True, False])
 def test_stderr_suppression(
-    interactive_spec: JSONDict,
-    suppress_warnings: bool,
-    monkeypatch: MonkeyPatch,
-    capsys: SysCapture,
+    interactive_spec: JSONDict, suppress_warnings: bool, capsys: SysCapture,
 ) -> None:
-    message = NodeSaver._stderr_ignore[0]
+    message = "WARN Can not resolve event source: window"
 
-    # Window resolve warnings are emitted by the vega CLI when an interactive chart
-    # is saved, and are suppressed by default.
-    if not suppress_warnings:
-        monkeypatch.setattr(NodeSaver, "_stderr_ignore", [])
+    # Window resolve warnings are suppressed by default.
+    if suppress_warnings:
+        saver = NodeSaver(interactive_spec)
+    else:
+        saver = NodeSaver(interactive_spec, stderr_filter=None)
 
-    NodeSaver(interactive_spec).save(fmt="png")
+    saver.save(fmt="png")
     captured = capsys.readouterr()
+
     if suppress_warnings:
         assert message not in captured.err
     else:
