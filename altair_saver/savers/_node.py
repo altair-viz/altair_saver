@@ -1,7 +1,7 @@
 import functools
 import json
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver._utils import check_output_with_stderr
@@ -33,6 +33,10 @@ def exec_path(name: str) -> str:
     raise ExecutableNotFound(name)
 
 
+def _default_stderr_filter(line: str) -> bool:
+    return line != "WARN Can not resolve event source: window"
+
+
 class NodeSaver(Saver):
 
     valid_formats: Dict[str, List[str]] = {
@@ -40,20 +44,18 @@ class NodeSaver(Saver):
         "vega-lite": ["pdf", "png", "svg", "vega"],
     }
     _vega_cli_options: List[str]
-    _stderr_ignore = ["WARN Can not resolve event source: window"]
-
-    @classmethod
-    def _stderr_filter(cls, line: str) -> bool:
-        return line not in cls._stderr_ignore
+    _stderr_filter: Optional[Callable[[str], bool]]
 
     def __init__(
         self,
         spec: JSONDict,
         mode: Optional[str] = None,
         vega_cli_options: Optional[List[str]] = None,
+        stderr_filter: Optional[Callable[[str], bool]] = _default_stderr_filter,
         **kwargs: Any,
     ) -> None:
         self._vega_cli_options = vega_cli_options or []
+        self._stderr_filter = stderr_filter
         super().__init__(spec=spec, mode=mode, **kwargs)
 
     def _vl2vg(self, spec: JSONDict) -> JSONDict:

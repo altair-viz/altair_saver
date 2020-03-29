@@ -98,47 +98,49 @@ def save(
     mode : string (optional)
         The mode of the input spec. Either "vega-lite" or "vega". If not specified,
         it will be inferred from the spec.
-    embed_options : dict (optional)
-        A dictionary of options to pass to vega-embed. If not specified, the default
-        will be drawn from alt.renderers.options.
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
     suppress_data_warning : bool (optional)
         If True, suppress warning about json & csv data transformers.
+    **kwargs :
+        Additional keyword arguments are passed to Saver initialization.
 
     Additional Parameters
     ---------------------
-    vega_version : string (optional)
+    embed_options : dict
+        For method in {"seleinum", "html"}, a dictionary of options to pass to vega-embed.
+        If not specified, the default will be drawn from alt.renderers.options.
+    vega_version : string
         For method in {"selenium", "html"}, the version of the vega javascript
         package to use. Default is alt.VEGA_VERSION.
-    vegalite_version : string (optional)
+    vegalite_version : string
         For method in {"selenium", "html"}, the version of the vega-lite javascript
         package to use. Default is alt.VEGALITE_VERSION.
-    vegaembed_version : string (optional)
+    vegaembed_version : string
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
-    vega_cli_options : list (optional)
+    vega_cli_options : list
         For method="node", a list of additional arguments to pass to vega's CLI functions.
         All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
-    inline : boolean (optional)
+    stderr_filter : function(str)->bool
+        For method="node", a function that allows filtering lines of stderr output. It is
+        called on each line of stderr, and the line is shown if the function returns True.
+    inline : boolean
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
-    standalone : boolean (optional)
+    standalone : boolean
         For method="html", specify whether to create a standalone HTML file.
         Default is True for save().
-    webdriver : string or Object (optional)
+    webdriver : string or WebDriver
         For method="selenium", the type of webdriver to use: one of "chrome", "firefox",
         or a selenium.WebDriver object. Defaults to what is available on your system.
-    offline : bool (optional)
+    offline : bool
         For method="selenium", whether to save charts in offline mode (default=True). If
         false, saving charts will require a web connection to load Javascript from CDN.
-    scale_factor : integer (optional)
+    scale_factor : integer
         For method="selenium", scale saved image by this factor (default=1). This parameter
         value is overridden by embed_options["scaleFactor"] when both are specified.
-
-    **kwargs :
-        Additional keyword arguments are passed to Saver initialization.
 
     Returns
     -------
@@ -194,41 +196,44 @@ def render(
     mode : string (optional)
         The mode of the input spec. Either "vega-lite" or "vega". If not specified,
         it will be inferred from the spec.
-    embed_options : dict (optional)
-        A dictionary of options to pass to vega-embed. If not specified, the default
-        will be drawn from alt.renderers.options.
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
+    **kwargs :
+        Additional keyword arguments are passed to Saver initialization.
 
     Additional Parameters
     ---------------------
-    vega_version : string (optional)
+    embed_options : dict
+        For method in {"seleinum", "html"}, a dictionary of options to pass to vega-embed.
+        If not specified, the default will be drawn from alt.renderers.options.
+    vega_version : string
         For method in {"selenium", "html"}, the version of the vega javascript
         package to use. Default is alt.VEGA_VERSION.
-    vegalite_version : string (optional)
+    vegalite_version : string
         For method in {"selenium", "html"}, the version of the vega-lite javascript
         package to use. Default is alt.VEGALITE_VERSION.
-    vegaembed_version : string (optional)
+    vegaembed_version : string
         For method in {"selenium", "html"}, the version of the vega-embed javascript
         package to use. Default is alt.VEGAEMBED_VERSION.
-    vega_cli_options : list (optional)
+    vega_cli_options : list
         For method="node", a list of additional arguments to pass to vega's CLI functions.
         All options will be passed to all Vega commands (e.g., `vg2svg`, `vg2pdf`, etc.).
-    inline : boolean (optional)
+    stderr_filter : function(str)->bool
+        For method="node", a function that allows filtering lines of stderr output. It is
+        called on each line of stderr, and the line is shown if the function returns True.
+    inline : boolean
         For method="html", specify whether javascript sources should be included
         inline rather than loaded from an external CDN. Default: False.
-    standalone : boolean (optional)
+    standalone : boolean
         For method="html", specify whether to create a standalone HTML file.
         Default is False for render().
-    webdriver : string or Object (optional)
+    webdriver : string or WebDriver
         For method="selenium", the type of webdriver to use: one of "chrome", "firefox",
         or a selenium.WebDriver object. Defaults to what is available on your system.
-    offline : bool (optional)
+    offline : bool
         For method="selenium", whether to save charts in offline mode (default=True). If
         false, saving charts will require a web connection to load Javascript from CDN.
-    **kwargs :
-        Additional keyword arguments are passed to Saver initialization.
     """
     if isinstance(fmts, str):
         fmts = [fmts]
