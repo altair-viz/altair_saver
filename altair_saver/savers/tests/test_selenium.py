@@ -2,7 +2,6 @@ import io
 import json
 import os
 from typing import Any, Dict, IO, Iterator, Tuple
-from xml.dom import minidom
 
 import altair as alt
 import pandas as pd
@@ -14,22 +13,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from altair_saver import SeleniumSaver, JavascriptError
 from altair_saver.types import JSONDict
 from altair_saver._utils import fmt_to_mimetype, internet_connected
-
-
-class _SVGImage:
-    _svg: minidom.Element
-
-    def __init__(self, svg_string: str):
-        parsed = minidom.parseString(svg_string)
-        self._svg = parsed.getElementsByTagName("svg")[0]
-
-    @property
-    def width(self) -> int:
-        return int(self._svg.getAttribute("width"))
-
-    @property
-    def height(self) -> int:
-        return int(self._svg.getAttribute("height"))
+from altair_saver.savers.tests._utils import SVGImage
 
 
 @pytest.fixture(scope="module")
@@ -172,10 +156,10 @@ def test_scale_factor(spec: JSONDict, fmt: str, kwds: Dict[str, Any]) -> None:
         assert im2.size[1] == 2 * im1.size[1]
     else:
         assert isinstance(out1, str)
-        im1 = _SVGImage(out1)
+        im1 = SVGImage(out1)
 
         assert isinstance(out2, str)
-        im2 = _SVGImage(out2)
+        im2 = SVGImage(out2)
 
         assert im2.width == 2 * im1.width
         assert im2.height == 2 * im1.height
