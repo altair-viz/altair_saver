@@ -12,6 +12,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from altair_saver import NodeSaver
 from altair_saver._utils import fmt_to_mimetype
 from altair_saver.savers import _node
+from altair_saver.savers.tests._utils import SVGImage
 from altair_saver.types import JSONDict
 
 
@@ -80,7 +81,10 @@ def test_node_mimebundle(
         assert abs(box.getHeight() - box_expected.getHeight()) < 5
     elif fmt == "svg":
         assert isinstance(out, str)
-        assert out.startswith("<svg")
+        im = SVGImage(out)
+        im_expected = SVGImage(data[fmt])
+        assert abs(im.width - im_expected.width) < 5
+        assert abs(im.height - im_expected.height) < 5
     else:
         assert out == data[fmt]
 
