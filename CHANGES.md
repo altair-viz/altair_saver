@@ -1,6 +1,11 @@
 # Altair Saver Change Log
 
-## Version 0.5.0 (Unreleased)
+## Version 0.5.0
+
+- Fix bug when running as root user on linux (#59)
+- node-based saver hides window warnings that were displayed when saving interactive charts
+  (#53, #57)
+- node-based saver now accepts ``vega_cli_options`` that will be passed to command line (#52)
 
 ## Version 0.4.0
 
