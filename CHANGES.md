@@ -1,5 +1,7 @@
 # Altair Saver Change Log
 
+## Version 0.6.0 (Unreleased)
+
 ## Version 0.5.0
 
 - Fix bug when running as root user on linux (#59)
