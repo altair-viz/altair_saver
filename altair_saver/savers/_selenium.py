@@ -96,7 +96,7 @@ class _DriverRegistry:
     def __init__(self) -> None:
         self.drivers = {}
 
-    def get(self, webdriver: Union[str, WebDriver], driver_timeout: float) -> WebDriver:
+    def get(self, webdriver: Union[str, WebDriver], driver_timeout: float, driver_arguments: Optional[list] = None) -> WebDriver:
         """Get a webdriver by name.
 
         Parameters
@@ -105,6 +105,8 @@ class _DriverRegistry:
             The webdriver to use.
         driver_timeout : float
             The per-page driver timeout.
+        driver_arguments : list
+            Arguments to add in the webdriver to use.
 
         Returns
         -------
@@ -135,6 +137,10 @@ class _DriverRegistry:
             and os.geteuid() == 0
         ):
             webdriver_options.add_argument("--no-sandbox")
+
+        if (driver_arguments is not None and len(driver_arguments) > 0):
+            for argument in driver_arguments:
+                webdriver_options.add_argument(argument)
 
         webdriver_options.add_argument("--headless")
 
@@ -192,10 +198,10 @@ class SeleniumSaver(Saver):
         )
 
     @classmethod
-    def _select_webdriver(cls, driver_timeout: int) -> Optional[str]:
+    def _select_webdriver(cls, driver_timeout: int, driver_arguments: Optional[list] = None) -> Optional[str]:
         for driver in cls.driver_options:
             try:
-                cls._registry.get(driver, driver_timeout)
+                cls._registry.get(driver, driver_timeout, driver_arguments)
             except WebDriverException:
                 pass
             except Exception as e:
@@ -207,8 +213,8 @@ class SeleniumSaver(Saver):
         return None
 
     @classmethod
-    def enabled(cls) -> bool:
-        return cls._select_webdriver(20) is not None
+    def enabled(cls, driver_arguments: Optional[list] = None) -> bool:
+        return cls._select_webdriver(20, driver_arguments) is not None
 
     @classmethod
     def _serve(cls, content: str, js_resources: Dict[str, str]) -> str:

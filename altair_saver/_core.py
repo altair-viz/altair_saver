@@ -29,6 +29,7 @@ def _select_saver(
     mode: str,
     fmt: Optional[str] = None,
     fp: Optional[Union[IO, str]] = None,
+    driver_arguments: Optional[list] = None,
 ) -> Type[Saver]:
     """Get an enabled Saver class that supports the specified format.
 
@@ -42,6 +43,8 @@ def _select_saver(
     fmt : string, optional
         The format to which the spec will be saved. If not specified, it
         is inferred from `fp`.
+    driver_arguments : list
+        Arguments to add in the webdriver to use.
     fp : string or file-like object, optional
         Only referenced if fmt is None. The name is used to infer the format
         if possible.
@@ -64,7 +67,10 @@ def _select_saver(
                 raise ValueError("Either fmt or fp must be specified")
             fmt = extract_format(fp)
         for s in _SAVER_METHODS.values():
-            if s.enabled() and fmt in s.valid_formats[mode]:
+            if (s is SeleniumSaver):
+                if (SeleniumSaver.enabled(driver_arguments) and fmt in s.valid_formats[mode]):
+                    return s
+            elif s.enabled() and fmt in s.valid_formats[mode]:
                 return s
         raise ValueError(f"No enabled saver found that supports format={fmt!r}")
     else:
@@ -178,6 +184,7 @@ def render(
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,
     method: Optional[Union[str, Type[Saver]]] = None,
+    driver_arguments: Optional[list] = None,
     **kwargs: Any,
 ) -> Mimebundle:
     """Render a chart, returning a mimebundle.
@@ -199,6 +206,8 @@ def render(
     method : string or type
         The save method to use: one of {"node", "selenium", "html", "basic"},
         or a subclass of Saver.
+    driver_arguments : list
+        Arguments to add in the webdriver to use.
     **kwargs :
         Additional keyword arguments are passed to Saver initialization.
 
@@ -252,7 +261,7 @@ def render(
         embed_options = alt.renderers.options.get("embed_options", None)
 
     for fmt in fmts:
-        Saver = _select_saver(method, mode=mode, fmt=fmt)
+        Saver = _select_saver(method, mode=mode, fmt=fmt, driver_arguments = driver_arguments)
         saver = Saver(spec, mode=mode, embed_options=embed_options, **kwargs)
         mimebundle.update(saver.mimebundle(fmt))
 
