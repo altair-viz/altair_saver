@@ -78,7 +78,7 @@ $ apt-get install chromium-chromedriver
 Using conda, the required packages can be installed as follows (a compatible version of
 [Google Chrome](https://www.google.com/chrome/) must be installed separately):
 ```bash
-$ conda install -c python-chromedriver-binary
+$ conda install -c conda-forge python-chromedriver-binary
 ```
 Selenium supports [other browsers](https://selenium-python.readthedocs.io/installation.html) as well,
 but altair-saver is currently only tested with Chrome.
