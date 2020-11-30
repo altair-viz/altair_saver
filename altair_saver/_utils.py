@@ -2,6 +2,7 @@ import contextlib
 from http import client
 import io
 import os
+import pathlib
 import socket
 import subprocess
 import sys
@@ -133,9 +134,10 @@ def temporary_filename(
 
 
 @contextlib.contextmanager
-def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
-    """Context manager to write to a file specified by filename or file-like object"""
-    if isinstance(fp, str):
+def maybe_open(fp: Union[IO, str, pathlib.PurePath], mode: str = "w") -> Iterator[IO]:
+    """Context manager to write to a file specified by filename, Path or
+    file-like object"""
+    if isinstance(fp, str) or isinstance(fp, pathlib.PurePath):
         with open(fp, mode) as f:
             yield f
     elif isinstance(fp, io.TextIOBase) and "b" in mode:
@@ -150,11 +152,13 @@ def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
         yield fp
 
 
-def extract_format(fp: Union[IO, str]) -> str:
-    """Extract the altair_saver output format from a file or filename."""
+def extract_format(fp: Union[IO, str, pathlib.PurePath]) -> str:
+    """Extract the altair_saver output format from a file, filename or Path."""
     filename: Optional[str]
     if isinstance(fp, str):
         filename = fp
+    elif isinstance(fp, pathlib.PurePath):
+        filename = str(fp)
     else:
         filename = getattr(fp, "name", None)
     if filename is None:
