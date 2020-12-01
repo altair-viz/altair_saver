@@ -1,5 +1,6 @@
 import http
 import io
+import pathlib
 import socket
 import subprocess
 import tempfile
@@ -43,21 +44,22 @@ def test_internet_connected(monkeypatch, connected: bool) -> None:
         ("vl.json", "vega-lite"),
     ],
 )
-@pytest.mark.parametrize("use_filename", [True, False])
-def test_extract_format(ext: str, fmt: str, use_filename: bool) -> None:
-    if use_filename:
+@pytest.mark.parametrize("fp_type", ['string', 'path', 'pointer', 'stream'])
+def test_extract_format(ext: str, fmt: str, fp_type: str) -> None:
+    if fp_type == 'string':
         filename = f"chart.{ext}"
         assert extract_format(filename) == fmt
-    else:
+    elif fp_type == 'path':
+        filepath = pathlib.Path(f"chart.{ext}")
+        assert extract_format(filepath) == fmt
+    elif fp_type == 'pointer':
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
             assert extract_format(fp) == fmt
-
-
-def test_extract_format_failure() -> None:
-    fp = io.StringIO()
-    with pytest.raises(ValueError) as err:
-        extract_format(fp)
-    assert f"Cannot infer format from {fp}" in str(err.value)
+    elif fp_type == 'stream':
+        fp = io.StringIO()
+        with pytest.raises(ValueError) as err:
+            extract_format(fp)
+        assert f"Cannot infer format from {fp}" in str(err.value)
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
