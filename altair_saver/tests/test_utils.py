@@ -63,11 +63,15 @@ def test_extract_format(ext: str, fmt: str, fp_type: str) -> None:
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
-def test_maybe_open_filename(mode: str) -> None:
+@pytest.mark.parametrize("fp_type", ["string", "path"])
+def test_maybe_open_filename(mode: str, fp_type: str) -> None:
     content_raw = "testing maybe_open with filename\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
     with temporary_filename() as filename:
+        if fp_type == "path":
+            filename = pathlib.Path(filename)
+
         with maybe_open(filename, mode) as f:
             f.write(content)
         with open(filename, "rb" if "b" in mode else "r") as f:
