@@ -44,18 +44,18 @@ def test_internet_connected(monkeypatch, connected: bool) -> None:
         ("vl.json", "vega-lite"),
     ],
 )
-@pytest.mark.parametrize("fp_type", ['string', 'path', 'pointer', 'stream'])
+@pytest.mark.parametrize("fp_type", ["string", "path", "pointer", "stream"])
 def test_extract_format(ext: str, fmt: str, fp_type: str) -> None:
-    if fp_type == 'string':
+    if fp_type == "string":
         filename = f"chart.{ext}"
         assert extract_format(filename) == fmt
-    elif fp_type == 'path':
+    elif fp_type == "path":
         filepath = pathlib.Path(f"chart.{ext}")
         assert extract_format(filepath) == fmt
-    elif fp_type == 'pointer':
+    elif fp_type == "pointer":
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
             assert extract_format(fp) == fmt
-    elif fp_type == 'stream':
+    elif fp_type == "stream":
         fp = io.StringIO()
         with pytest.raises(ValueError) as err:
             extract_format(fp)
