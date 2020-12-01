@@ -56,25 +56,27 @@ def test_extract_format(ext: str, fmt: str, fp_type: str) -> None:
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
             assert extract_format(fp) == fmt
     elif fp_type == "stream":
-        fp = io.StringIO()
+        string_io = io.StringIO()
         with pytest.raises(ValueError) as err:
-            extract_format(fp)
-        assert f"Cannot infer format from {fp}" in str(err.value)
+            extract_format(string_io)
+        assert f"Cannot infer format from {string_io}" in str(err.value)
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
 @pytest.mark.parametrize("fp_type", ["string", "path"])
 def test_maybe_open_filename(mode: str, fp_type: str) -> None:
-    content_raw = "testing maybe_open with filename\n"
+    content_raw = "testing maybe_open with filename or path\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
     with temporary_filename() as filename:
         if fp_type == "path":
-            filename = pathlib.Path(filename)
+            fp = pathlib.Path(filename)
+        elif fp_type == "string":
+            fp = filename
 
-        with maybe_open(filename, mode) as f:
+        with maybe_open(fp, mode) as f:
             f.write(content)
-        with open(filename, "rb" if "b" in mode else "r") as f:
+        with open(fp, "rb" if "b" in mode else "r") as f:
             assert f.read() == content
 
 
