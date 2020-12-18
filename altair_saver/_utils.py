@@ -1,13 +1,13 @@
 import contextlib
-from http import client
 import io
 import os
-from pathlib import Path
 import socket
 import subprocess
 import sys
 import tempfile
-from typing import Callable, IO, Iterator, List, Optional, Union
+from http import client
+from pathlib import Path
+from typing import IO, Callable, Iterator, List, Optional, Union
 
 import altair as alt
 

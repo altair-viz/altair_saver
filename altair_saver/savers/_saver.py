@@ -4,8 +4,13 @@ from pathlib import Path
 from typing import IO, Any, Dict, Iterable, List, Optional, Union
 
 import altair as alt
-from altair_saver._utils import (extract_format, fmt_to_mimetype,
-                                 infer_mode_from_spec, maybe_open)
+
+from altair_saver._utils import (
+    extract_format,
+    fmt_to_mimetype,
+    infer_mode_from_spec,
+    maybe_open,
+)
 from altair_saver.types import JSONDict, Mimebundle, MimebundleContent
 
 
