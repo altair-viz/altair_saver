@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from pathlib import Path
 from typing import Any, Dict, IO, Iterable, Optional, Set, Type, Union
 import warnings
 
@@ -73,7 +74,7 @@ def _select_saver(
 
 def save(
     chart: Union[alt.TopLevelMixin, JSONDict],
-    fp: Optional[Union[IO, str]] = None,
+    fp: Optional[Union[IO, str, Path]] = None,
     fmt: Optional[str] = None,
     mode: Optional[str] = None,
     embed_options: Optional[JSONDict] = None,

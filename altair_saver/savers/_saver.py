@@ -1,16 +1,12 @@
 import abc
 import json
-from typing import Any, Dict, IO, Iterable, List, Optional, Union
+from pathlib import Path
+from typing import IO, Any, Dict, Iterable, List, Optional, Union
 
 import altair as alt
-
-from altair_saver.types import Mimebundle, MimebundleContent, JSONDict
-from altair_saver._utils import (
-    extract_format,
-    fmt_to_mimetype,
-    infer_mode_from_spec,
-    maybe_open,
-)
+from altair_saver._utils import (extract_format, fmt_to_mimetype,
+                                 infer_mode_from_spec, maybe_open)
+from altair_saver.types import JSONDict, Mimebundle, MimebundleContent
 
 
 class Saver(metaclass=abc.ABCMeta):
@@ -91,7 +87,7 @@ class Saver(metaclass=abc.ABCMeta):
         return bundle
 
     def save(
-        self, fp: Optional[Union[IO, str]] = None, fmt: Optional[str] = None
+        self, fp: Optional[Union[IO, str, Path]] = None, fmt: Optional[str] = None
     ) -> Optional[Union[str, bytes]]:
         """Save a chart to file
 

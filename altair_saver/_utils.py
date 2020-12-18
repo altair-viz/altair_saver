@@ -2,6 +2,7 @@ import contextlib
 from http import client
 import io
 import os
+from pathlib import Path
 import socket
 import subprocess
 import sys
@@ -135,7 +136,7 @@ def temporary_filename(
 @contextlib.contextmanager
 def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
     """Context manager to write to a file specified by filename or file-like object"""
-    if isinstance(fp, str):
+    if isinstance(fp, (str, Path)):
         with open(fp, mode) as f:
             yield f
     elif isinstance(fp, io.TextIOBase) and "b" in mode:
