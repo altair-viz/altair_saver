@@ -37,7 +37,7 @@ entrypoint that can display the above outputs directly in Jupyter notebooks.
 For example, you can specify a vega-lite mimetype (supported by JupyterLab, nteract, and other
 platforms) with a PNG fallback for other frontends as follows:
 ```python
-alt.renderers.enable('altair_saver', ['vega-lite', 'png'])
+alt.renderers.enable('altair_saver', fmts=['vega-lite', 'png'])
 ```
 
 ## Installation
