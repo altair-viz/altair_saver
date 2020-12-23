@@ -52,9 +52,12 @@ class NodeSaver(Saver):
         mode: Optional[str] = None,
         vega_cli_options: Optional[List[str]] = None,
         stderr_filter: Optional[Callable[[str], bool]] = _default_stderr_filter,
+        scale_factor: Optional[float] = 1,
         **kwargs: Any,
     ) -> None:
         self._vega_cli_options = vega_cli_options or []
+        if scale_factor is not None:
+            self._vega_cli_options += ["-s %f" % scale_factor]
         self._stderr_filter = stderr_filter
         super().__init__(spec=spec, mode=mode, **kwargs)
 
