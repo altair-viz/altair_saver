@@ -77,7 +77,7 @@ $ apt-get install chromium-chromedriver
 ```
 Using conda, the required packages can be installed as follows:
 ```bash
-$ conda install -c python-chromedriver-binary
+$ conda install -c conda-forge python-chromedriver-binary
 ```
 The conda approach additionally requires separate installation of a compatible version of
 [Google Chrome](https://www.google.com/chrome/), which cannot be done via conda.
