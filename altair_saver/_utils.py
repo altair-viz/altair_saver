@@ -1,12 +1,13 @@
 import contextlib
-from http import client
 import io
 import os
 import socket
 import subprocess
 import sys
 import tempfile
-from typing import Callable, IO, Iterator, List, Optional, Union
+from http import client
+from pathlib import Path
+from typing import IO, Callable, Iterator, List, Optional, Union
 
 import altair as alt
 
@@ -135,7 +136,7 @@ def temporary_filename(
 @contextlib.contextmanager
 def maybe_open(fp: Union[IO, str], mode: str = "w") -> Iterator[IO]:
     """Context manager to write to a file specified by filename or file-like object"""
-    if isinstance(fp, str):
+    if isinstance(fp, (str, Path)):
         with open(fp, mode) as f:
             yield f
     elif isinstance(fp, io.TextIOBase) and "b" in mode:
