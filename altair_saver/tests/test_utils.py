@@ -1,5 +1,6 @@
 import http
 import io
+import pathlib
 import socket
 import subprocess
 import tempfile
@@ -43,32 +44,39 @@ def test_internet_connected(monkeypatch, connected: bool) -> None:
         ("vl.json", "vega-lite"),
     ],
 )
-@pytest.mark.parametrize("use_filename", [True, False])
-def test_extract_format(ext: str, fmt: str, use_filename: bool) -> None:
-    if use_filename:
+@pytest.mark.parametrize("fp_type", ["string", "path", "pointer", "stream"])
+def test_extract_format(ext: str, fmt: str, fp_type: str) -> None:
+    if fp_type == "string":
         filename = f"chart.{ext}"
         assert extract_format(filename) == fmt
-    else:
+    elif fp_type == "path":
+        filepath = pathlib.Path(f"chart.{ext}")
+        assert extract_format(filepath) == fmt
+    elif fp_type == "pointer":
         with tempfile.NamedTemporaryFile(suffix=f".{ext}") as fp:
             assert extract_format(fp) == fmt
-
-
-def test_extract_format_failure() -> None:
-    fp = io.StringIO()
-    with pytest.raises(ValueError) as err:
-        extract_format(fp)
-    assert f"Cannot infer format from {fp}" in str(err.value)
+    elif fp_type == "stream":
+        string_io = io.StringIO()
+        with pytest.raises(ValueError) as err:
+            extract_format(string_io)
+        assert f"Cannot infer format from {string_io}" in str(err.value)
 
 
 @pytest.mark.parametrize("mode", ["w", "wb"])
-def test_maybe_open_filename(mode: str) -> None:
-    content_raw = "testing maybe_open with filename\n"
+@pytest.mark.parametrize("fp_type", ["string", "path"])
+def test_maybe_open_filename(mode: str, fp_type: str) -> None:
+    content_raw = "testing maybe_open with filename or path\n"
     content = content_raw.encode() if "b" in mode else content_raw
 
     with temporary_filename() as filename:
-        with maybe_open(filename, mode) as f:
+        if fp_type == "path":
+            fp = pathlib.Path(filename)
+        elif fp_type == "string":
+            fp = filename
+
+        with maybe_open(fp, mode) as f:
             f.write(content)
-        with open(filename, "rb" if "b" in mode else "r") as f:
+        with open(fp, "rb" if "b" in mode else "r") as f:
             assert f.read() == content
 
 

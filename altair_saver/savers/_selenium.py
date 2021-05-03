@@ -215,11 +215,16 @@ class SeleniumSaver(Saver):
         if cls._provider is None:
             cls._provider = Provider()
         resource = cls._provider.create(
-            content=content, route="", headers={"Access-Control-Allow-Origin": "*"},
+            content=content,
+            route="",
+            headers={"Access-Control-Allow-Origin": "*"},
         )
         cls._resources[resource.url] = resource
         for route, content in js_resources.items():
-            cls._resources[route] = cls._provider.create(content=content, route=route,)
+            cls._resources[route] = cls._provider.create(
+                content=content,
+                route=route,
+            )
         return resource.url
 
     @classmethod
