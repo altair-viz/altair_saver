@@ -18,7 +18,7 @@ jobs:
     - name: Set Up Node
       uses: actions/setup-node@v1
       with:
-        node-version: '10.x'
+        node-version: '17.x'
     - name: Set Up Chromedriver
       run: |
         sudo apt-get update
@@ -33,7 +33,7 @@ jobs:
         pip install pillow pypdf2  # optional test requirements
         pip install .
     - name: Test with pytest
-      run: |
+      run: |  
         pip install pytest
         pytest --doctest-modules altair_saver
       
