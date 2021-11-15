@@ -112,7 +112,9 @@ def test_enabled(monkeypatch: MonkeyPatch, enabled: bool) -> None:
 
 @pytest.mark.parametrize("suppress_warnings", [True, False])
 def test_stderr_suppression(
-    interactive_spec: JSONDict, suppress_warnings: bool, capsys: SysCapture,
+    interactive_spec: JSONDict,
+    suppress_warnings: bool,
+    capsys: SysCapture,
 ) -> None:
     message = "WARN Can not resolve event source: window"
 

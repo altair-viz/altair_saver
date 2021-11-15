@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     name: Python ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v1
@@ -16,9 +16,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set Up Node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
-        node-version: '10.x'
+        node-version: '14'
     - name: Set Up Chromedriver
       run: |
         sudo apt-get update
@@ -33,7 +33,7 @@ jobs:
         pip install pillow pypdf2  # optional test requirements
         pip install .
     - name: Test with pytest
-      run: |
+      run: |  
         pip install pytest
         pytest --doctest-modules altair_saver
       

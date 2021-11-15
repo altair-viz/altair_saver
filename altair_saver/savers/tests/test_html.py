@@ -75,7 +75,9 @@ def test_html_save(
 @pytest.mark.parametrize("embed_options", [None, {"theme": "dark"}])
 @pytest.mark.parametrize("case, data", get_testcases())
 def test_html_mimebundle(
-    case: str, data: Dict[str, Any], embed_options: Optional[dict],
+    case: str,
+    data: Dict[str, Any],
+    embed_options: Optional[dict],
 ) -> None:
     saver = HTMLSaver(data["vega-lite"], embed_options=embed_options)
     bundle = saver.mimebundle("html")
