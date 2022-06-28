@@ -264,7 +264,7 @@ class SeleniumSaver(Saver):
         driver.get("about:blank")
         driver.get(url)
         try:
-            driver.find_element_by_id("vis")
+            driver.find_element("id","vis")
         except NoSuchElementException:
             raise RuntimeError(f"Could not load {url}")
         if not self._offline:
