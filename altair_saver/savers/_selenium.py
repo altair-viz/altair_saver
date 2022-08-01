@@ -10,6 +10,7 @@ from altair_viewer import get_bundled_script
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.webdriver.common.by import By
 
 from altair_saver.types import JSONDict, MimebundleContent
 from altair_saver.savers import Saver
@@ -264,7 +265,7 @@ class SeleniumSaver(Saver):
         driver.get("about:blank")
         driver.get(url)
         try:
-            driver.find_element_by_id("vis")
+            driver.find_element(By.ID, "vis")
         except NoSuchElementException:
             raise RuntimeError(f"Could not load {url}")
         if not self._offline:

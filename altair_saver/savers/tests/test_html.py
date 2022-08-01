@@ -8,6 +8,7 @@ from PIL import Image
 import pytest
 import selenium.webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.common.by import By
 
 from altair_saver import HTMLSaver
 from altair_saver._utils import internet_connected
@@ -117,7 +118,7 @@ def test_html_save_rendering(
     resource = provider.create(content=html, extension="html")
     driver.set_window_size(800, 600)
     driver.get(resource.url)
-    element = driver.find_element_by_class_name("vega-visualization")
+    element = driver.find_element(By.CLASS_NAME, "vega-visualization")
 
     png = driver.get_screenshot_as_png()
     im = Image.open(io.BytesIO(png))
@@ -162,7 +163,7 @@ def test_html_mimebundle_rendering(
     resource = provider.create(content=html, extension="html")
     driver.set_window_size(800, 600)
     driver.get(resource.url)
-    element = driver.find_element_by_class_name("vega-visualization")
+    element = driver.find_element(By.CLASS_NAME, "vega-visualization")
 
     png = driver.get_screenshot_as_png()
     im = Image.open(io.BytesIO(png))
