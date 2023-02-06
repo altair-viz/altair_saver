@@ -18,7 +18,7 @@ def npm_bin(global_: bool) -> str:
     npm = shutil.which("npm")
     if not npm:
         raise ExecutableNotFound("npm")
-    cmd = [npm, "bin"]
+    cmd = [npm, "root"]
     if global_:
         cmd.append("--global")
     return check_output_with_stderr(cmd).decode().strip()
