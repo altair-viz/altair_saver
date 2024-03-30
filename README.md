@@ -1,5 +1,13 @@
 # Altair Saver
 
+**This repo is no longer maintained.**
+Since Altair 5.2,
+the functionality of Altair Saver is now available in Altair via the [vl-convert](https://github.com/vega/vl-convert) package.
+Most of the functionality has been available since 5.0, and [the main addition in 5.2 was PDF export](https://github.com/altair-viz/altair/pull/3244).
+See [the docs on how to save charts](https://altair-viz.github.io/user_guide/saving_charts.html#png-svg-and-pdf-format) for more details
+
+---
+
 [![github actions](https://github.com/altair-viz/altair_saver/workflows/build/badge.svg)](https://github.com/altair-viz/altair_saver/actions?query=workflow%3Abuild)
 [![github actions](https://github.com/altair-viz/altair_saver/workflows/lint/badge.svg)](https://github.com/altair-viz/altair_saver/actions?query=workflow%3Alint)
 [![code style black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
